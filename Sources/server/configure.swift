@@ -1,3 +1,4 @@
+import db
 import NIOSSL
 import Fluent
 import FluentPostgresDriver
@@ -26,6 +27,7 @@ public func configure(_ app: Application) async throws {
     )
 
     app.migrations.add(CreateTodo())
+    app.migrations.add(dbMigrations())
 
     app.views.use(.leaf)
 

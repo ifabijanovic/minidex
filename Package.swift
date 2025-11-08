@@ -6,6 +6,9 @@ let package = Package(
     platforms: [
        .macOS(.v13)
     ],
+    products: [
+        .library(name: "db", targets: ["db"]),
+    ],
     dependencies: [
         // 💧 A server-side Swift web framework.
         .package(url: "https://github.com/vapor/vapor.git", from: "4.115.0"),
@@ -19,9 +22,17 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0"),
     ],
     targets: [
+        .target(
+            name: "db",
+            dependencies: [
+                .product(name: "Fluent", package: "fluent"),
+            ],
+            swiftSettings: swiftSettings
+        ),
         .executableTarget(
             name: "server",
             dependencies: [
+                "db",
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
                 .product(name: "Leaf", package: "leaf"),
