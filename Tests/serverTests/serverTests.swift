@@ -1,10 +1,10 @@
-@testable import miniarchive
+@testable import server
 import VaporTesting
 import Testing
 import Fluent
 
 @Suite("App Tests with DB", .serialized)
-struct miniarchiveTests {
+struct serverTests {
     private func withApp(_ test: (Application) async throws -> ()) async throws {
         let app = try await Application.make(.testing)
         do {
