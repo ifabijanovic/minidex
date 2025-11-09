@@ -1,19 +1,21 @@
-import db
+import MiniDexDB
 import Fluent
 import Vapor
 
-struct MiniModel: Content {
+struct Mini: Content {
     var id: UUID?
     var name: String
+    var gameSystemID: UUID
 }
 
-struct MiniModelPatch: Content {
+struct MiniPatch: Content {
     var name: String?
+    var gameSystemID: UUID?
 }
 
-struct MiniModelController: RouteCollection {
+struct MiniController: RouteCollection {
     func boot(routes: any RoutesBuilder) throws {
-        let group = routes.grouped("api", "minimodel")
+        let group = routes.grouped("api", "mini")
         group.get(use: self.index)
         group.post(use: self.create)
         group.group(":id") { route in
@@ -24,31 +26,34 @@ struct MiniModelController: RouteCollection {
     }
 
     @Sendable
-    func index(req: Request) async throws -> [MiniModel] {
-        try await DBMiniModel
+    func index(req: Request) async throws -> [Mini] {
+        try await DBMini
             .query(on: req.db)
             .all()
-            .map(MiniModel.init(db:))
+            .map(Mini.init(db:))
     }
 
     @Sendable
-    func get(req: Request) async throws -> MiniModel {
+    func get(req: Request) async throws -> Mini {
         try await .init(db: findById(req: req))
     }
 
     @Sendable
-    func create(req: Request) async throws -> MiniModel {
-        let dbModel = try req.content.decode(MiniModel.self).toModel()
+    func create(req: Request) async throws -> Mini {
+        let dbModel = try req.content.decode(Mini.self).toModel()
         try await dbModel.save(on: req.db)
         return .init(db: dbModel)
     }
 
     @Sendable
-    func update(req: Request) async throws -> MiniModel {
+    func update(req: Request) async throws -> Mini {
         let dbModel = try await findById(req: req)
-        let patch = try req.content.decode(MiniModelPatch.self)
+        let patch = try req.content.decode(MiniPatch.self)
         if let name = patch.name {
             dbModel.name = name
+        }
+        if let gameSystemID = patch.gameSystemID {
+            dbModel.$gameSystem.id = gameSystemID
         }
         try await dbModel.save(on: req.db)
         return .init(db: dbModel)
@@ -58,24 +63,25 @@ struct MiniModelController: RouteCollection {
     func delete(req: Request) async throws -> HTTPStatus {
         let dbModel = try await findById(req: req)
         try await dbModel.delete(on: req.db)
-        return .ok
+        return .noContent
     }
 
-    private func findById(req: Request) async throws -> DBMiniModel {
-        if let dbModel = try await DBMiniModel.find(req.parameters.require("id"), on: req.db) {
+    private func findById(req: Request) async throws -> DBMini {
+        if let dbModel = try await DBMini.find(req.parameters.require("id"), on: req.db) {
             return dbModel
         }
         throw Abort(.notFound)
     }
 }
 
-extension MiniModel {
-    init(db: DBMiniModel) {
+extension Mini {
+    init(db: DBMini) {
         self.id = db.id
         self.name = db.name
+        self.gameSystemID = db.$gameSystem.id
     }
 
-    func toModel() -> DBMiniModel {
-        .init(id: id, name: name)
+    func toModel() -> DBMini {
+        .init(id: id, name: name, gameSystemID: gameSystemID)
     }
 }

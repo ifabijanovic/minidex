@@ -1,4 +1,4 @@
-import db
+import MiniDexDB
 import NIOSSL
 import Fluent
 import FluentPostgresDriver
@@ -26,8 +26,7 @@ public func configure(_ app: Application) async throws {
         as: .psql
     )
 
-    app.migrations.add(CreateTodo())
-    app.migrations.add(dbMigrations())
+    app.migrations.add(Migrations.all)
 
     app.views.use(.leaf)
 

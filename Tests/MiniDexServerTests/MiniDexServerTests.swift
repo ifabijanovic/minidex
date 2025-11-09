@@ -4,7 +4,7 @@ import Testing
 import Fluent
 
 @Suite("App Tests with DB", .serialized)
-struct serverTests {
+struct MiniDexServerTests {
     private func withApp(_ test: (Application) async throws -> ()) async throws {
         let app = try await Application.make(.testing)
         do {

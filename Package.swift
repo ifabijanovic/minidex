@@ -7,7 +7,7 @@ let package = Package(
        .macOS(.v13)
     ],
     products: [
-        .library(name: "db", targets: ["db"]),
+        .library(name: "MiniDexDB", targets: ["MiniDexDB"]),
     ],
     dependencies: [
         // 💧 A server-side Swift web framework.
@@ -23,16 +23,16 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "db",
+            name: "MiniDexDB",
             dependencies: [
                 .product(name: "Fluent", package: "fluent"),
             ],
             swiftSettings: swiftSettings
         ),
         .executableTarget(
-            name: "server",
+            name: "MiniDexServer",
             dependencies: [
-                "db",
+                .target(name: "MiniDexDB"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
                 .product(name: "Leaf", package: "leaf"),
@@ -43,9 +43,9 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .testTarget(
-            name: "serverTests",
+            name: "MiniDexServerTests",
             dependencies: [
-                .target(name: "server"),
+                .target(name: "MiniDexServer"),
                 .product(name: "VaporTesting", package: "vapor"),
             ],
             swiftSettings: swiftSettings

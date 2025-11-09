@@ -1,8 +1,7 @@
 import Fluent
-import Foundation
 
-public final class DBMiniModel: Model, @unchecked Sendable {
-    public static let schema = "mini_models"
+public final class DBGameSystem: Model, @unchecked Sendable {
+    public static let schema = "game_systems"
 
     @ID
     public var id: UUID?
@@ -21,7 +20,7 @@ public final class DBMiniModel: Model, @unchecked Sendable {
     }
 }
 
-extension DBMiniModel: CustomStringConvertible {
+extension DBGameSystem: CustomStringConvertible {
     public var description: String {
         name
     }
