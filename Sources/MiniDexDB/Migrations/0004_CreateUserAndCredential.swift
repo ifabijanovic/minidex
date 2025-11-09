@@ -7,8 +7,8 @@ struct Migration_0004_CreateUserAndCredential: AsyncMigration {
             .schema("users")
             .id()
             .field("display_name", .string)
-            .field("created_at", .datetime)
-            .field("updated_at", .datetime)
+            .field("created_at", .datetime, .required)
+            .field("updated_at", .datetime, .required)
             .create()
 
         let credentialType = try await database
