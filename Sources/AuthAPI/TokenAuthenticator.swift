@@ -2,8 +2,10 @@ import AuthDB
 import Fluent
 import Vapor
 
-struct TokenAuthenticator: AsyncBearerAuthenticator {
-    func authenticate(bearer: BearerAuthorization, for request: Request) async throws {
+public struct TokenAuthenticator: AsyncBearerAuthenticator {
+    public init() {}
+
+    public func authenticate(bearer: BearerAuthorization, for request: Request) async throws {
         guard let hash = bearer.token
             .base64URLDecodedData()
             .map(SHA256.hash(data:))

@@ -1,3 +1,4 @@
+import AuthAPI
 import Fluent
 import Vapor
 
@@ -10,7 +11,10 @@ func routes(_ app: Application) throws {
         "Hello, world!"
     }
 
-    try app.register(collection: AuthController())
+    try app.register(collection: AuthController(
+        tokenLength: Settings.Auth.tokenLength,
+        accessTokenExpiration: Settings.Auth.accessTokenExpiration,
+    ))
     try app.register(collection: MiniController())
     try app.register(collection: GameSystemController())
 }

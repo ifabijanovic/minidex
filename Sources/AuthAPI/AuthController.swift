@@ -2,13 +2,13 @@ import AuthDB
 import Fluent
 import Vapor
 
-struct LoginUser: Content {
+struct LoginIn: Content {
     var user: User
     var accessToken: String
     var expiresIn: Int
 }
 
-struct RegisterUser: Content, Validatable {
+struct RegisterIn: Content, Validatable {
     var username: String
     var password: String
     var confirmPassword: String
@@ -20,8 +20,16 @@ struct RegisterUser: Content, Validatable {
     }
 }
 
-struct AuthController: RouteCollection {
-    func boot(routes: any RoutesBuilder) throws {
+public struct AuthController: RouteCollection, Sendable {
+    let tokenLength: Int
+    let accessTokenExpiration: TimeInterval
+
+    public init(tokenLength: Int, accessTokenExpiration: TimeInterval) {
+        self.tokenLength = tokenLength
+        self.accessTokenExpiration = accessTokenExpiration
+    }
+
+    public func boot(routes: any RoutesBuilder) throws {
         let group = routes.grouped("api", "auth")
         group.post("register", use: self.register)
         group
@@ -30,11 +38,11 @@ struct AuthController: RouteCollection {
     }
 
     @Sendable
-    func login(req: Request) async throws -> LoginUser {
+    func login(req: Request) async throws -> LoginIn {
         let user = try req.auth.require(User.self)
 
-        let tokenValue = generateToken(length: Settings.Auth.tokenLength)
-        let expiresAt = Date() + Settings.Auth.accessTokenExpiration
+        let tokenValue = generateToken(length: tokenLength)
+        let expiresAt = Date() + accessTokenExpiration
 
         let token = DBUserToken(
             userID: user.id,
@@ -53,8 +61,8 @@ struct AuthController: RouteCollection {
 
     @Sendable
     func register(req: Request) async throws -> HTTPStatus {
-        try RegisterUser.validate(content: req)
-        let input = try req.content.decode(RegisterUser.self)
+        try RegisterIn.validate(content: req)
+        let input = try req.content.decode(RegisterIn.self)
         guard input.password == input.confirmPassword else {
             throw Abort(.badRequest, reason: "Passwords don't match")
         }

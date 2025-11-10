@@ -8,6 +8,7 @@ let package = Package(
     ],
     products: [
         .library(name: "AuthDB", targets: ["AuthDB"]),
+        .library(name: "AuthAPI", targets: ["AuthAPI"]),
         .library(name: "MiniDexDB", targets: ["MiniDexDB"]),
     ],
     dependencies: [
@@ -31,6 +32,15 @@ let package = Package(
             swiftSettings: swiftSettings,
         ),
         .target(
+            name: "AuthAPI",
+            dependencies: [
+                .target(name: "AuthDB"),
+                .product(name: "Fluent", package: "fluent"),
+                .product(name: "Vapor", package: "vapor"),
+            ],
+            swiftSettings: swiftSettings,
+        ),
+        .target(
             name: "MiniDexDB",
             dependencies: [
                 .product(name: "Fluent", package: "fluent"),
@@ -40,7 +50,7 @@ let package = Package(
         .executableTarget(
             name: "MiniDexServer",
             dependencies: [
-                .target(name: "AuthDB"),
+                .target(name: "AuthAPI"),
                 .target(name: "MiniDexDB"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),

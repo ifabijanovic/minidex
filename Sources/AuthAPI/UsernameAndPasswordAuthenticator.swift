@@ -2,8 +2,10 @@ import AuthDB
 import Fluent
 import Vapor
 
-struct UsernameAndPasswordAuthenticator: AsyncBasicAuthenticator {
-    func authenticate(basic: BasicAuthorization, for request: Request) async throws {
+public struct UsernameAndPasswordAuthenticator: AsyncBasicAuthenticator {
+    public init() {}
+
+    public func authenticate(basic: BasicAuthorization, for request: Request) async throws {
         let credential = try await DBCredential
             .query(on: request.db)
             .join(DBUser.self, on: \DBCredential.$user.$id == \DBUser.$id)

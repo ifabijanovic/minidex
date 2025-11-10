@@ -1,3 +1,4 @@
+import AuthAPI
 import Fluent
 import MiniDexDB
 import Vapor
