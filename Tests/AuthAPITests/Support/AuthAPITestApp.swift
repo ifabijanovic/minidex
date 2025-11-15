@@ -18,9 +18,7 @@ enum AuthAPITestApp {
         let redisDriver = InMemoryRedisDriver()
 
         do {
-            app.databases.use(.sqlite(.memory), as: .sqlite)
-            app.migrations.add(AuthDB.migrations)
-            try await app.autoMigrate()
+            try await TestDatabaseHelpers.migrate(app)
 
             app.useRedisClientOverride { request in
                 redisDriver.makeClient(on: request.eventLoop)
@@ -34,12 +32,12 @@ enum AuthAPITestApp {
 
             try await test(app, redisDriver)
         } catch {
-            try? await app.autoRevert()
+            try await TestDatabaseHelpers.reset(app)
             try await app.asyncShutdown()
             throw error
         }
 
-        try await app.autoRevert()
+        try await TestDatabaseHelpers.reset(app)
         try await app.asyncShutdown()
     }
 }
