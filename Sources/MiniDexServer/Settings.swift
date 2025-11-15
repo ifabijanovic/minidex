@@ -8,10 +8,25 @@ enum Settings {
     }
 
     enum DB {
-        static let hostname = Environment.get("DATABASE_HOST") ?? "localhost"
-        static let port = Environment.get("DATABASE_PORT").flatMap(Int.init(_:)) ?? SQLPostgresConfiguration.ianaPortNumber
-        static let username = Environment.get("DATABASE_USERNAME") ?? "vapor_username"
-        static let password = Environment.get("DATABASE_PASSWORD") ?? "vapor_password"
-        static let database = Environment.get("DATABASE_NAME") ?? "vapor_database"
+        static var hostname: String? { Environment.get("DATABASE_HOST") }
+        static var port: Int? { Environment.get("DATABASE_PORT").flatMap(Int.init(_:)) }
+        static var username: String? { Environment.get("DATABASE_USERNAME") }
+        static var password: String? { Environment.get("DATABASE_PASSWORD") }
+        static var database: String? { Environment.get("DATABASE_NAME") }
+        static var adminUsername: String? { Environment.get("ADMIN_USERNAME") }
+        static var adminPassword: String? { Environment.get("ADMIN_PASSWORD") }
+    }
+}
+
+struct InvalidDBSettingsError: Error, CustomStringConvertible, CustomNSError {
+    static let errorDomain = "hr.daylight.minidex.server"
+    let key: String
+    
+    var description: String {
+        "Missing required database setting: \(key)"
+    }
+    
+    var errorUserInfo: [String: Any] {
+        [NSLocalizedDescriptionKey: description]
     }
 }

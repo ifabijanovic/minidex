@@ -3,9 +3,10 @@ import Fluent
 import Vapor
 
 struct LoginOut: Content {
-    var user: User
     var accessToken: String
     var expiresIn: Int
+    var userId: UUID
+    var displayName: String?
 }
 
 struct RegisterIn: Content, Validatable {
@@ -59,9 +60,10 @@ public struct AuthController: RouteCollection, Sendable {
         try await token.save(on: req.db)
 
         return .init(
-            user: user,
             accessToken: tokenValue.base64URLEncodedString(),
-            expiresIn: Int(token.expiresAt.timeIntervalSinceNow)
+            expiresIn: Int(token.expiresAt.timeIntervalSinceNow),
+            userId: user.id,
+            displayName: user.displayName,
         )
     }
 

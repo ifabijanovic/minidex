@@ -20,11 +20,13 @@ volumes:
 
 x-shared_environment: &shared_environment
   LOG_LEVEL: ${LOG_LEVEL:-debug}
-  DATABASE_HOST: db
-  DATABASE_NAME: &db_name vapor_database
-  DATABASE_USERNAME: &db_username vapor_username
-  DATABASE_PASSWORD: &db_password vapor_password
-  
+  DATABASE_HOST: ${DATABASE_HOST}
+  DATABASE_NAME: ${DATABASE_NAME}
+  DATABASE_USERNAME: ${DATABASE_USERNAME}
+  DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+  ADMIN_USERNAME: ${ADMIN_USERNAME}
+  ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+
 services:
   app:
     image: minidex-server:latest
@@ -61,8 +63,8 @@ services:
     volumes:
       - db_data:/var/lib/postgresql
     environment:
-      POSTGRES_USER: *db_username
-      POSTGRES_PASSWORD: *db_password
-      POSTGRES_DB: *db_name
+      POSTGRES_USER: ${DATABASE_USERNAME:-vapor_username}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-vapor_password}
+      POSTGRES_DB: ${DATABASE_NAME:-vapor_database}
     ports:
       - '5432:5432'
