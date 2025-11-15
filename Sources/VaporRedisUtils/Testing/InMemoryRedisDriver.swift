@@ -138,7 +138,7 @@ public final class InMemoryRedisDriver: @unchecked Sendable {
             return .bulkString(buffer)
         }
 
-        return .bulkString(nil)
+        return .null
     }
 
     private func handleDel(arguments: [RESPValue]) throws -> RESPValue {

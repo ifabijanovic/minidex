@@ -16,11 +16,7 @@ extension RedisClient {
         logger: Logger,
     ) async -> AuthUser? {
         do {
-            // TODO: when key does not exists get returns an empty Data which fails to decode
-            let key = Self.userCacheKey(accessToken: accessToken)
-            return try await exists(key) > 0
-                ? get(key, asJSON: AuthUser.self)
-                : nil
+            return try await get(Self.userCacheKey(accessToken: accessToken), asJSON: AuthUser.self)
         } catch {
             logger.error("User cache lookup in Redis failed: \(error)")
             return nil
