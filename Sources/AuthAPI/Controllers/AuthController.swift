@@ -2,6 +2,8 @@ import AuthDB
 import Fluent
 import Redis
 import Vapor
+import VaporRedisUtils
+import VaporUtils
 
 struct LoginOut: Content {
     var accessToken: String
@@ -69,7 +71,7 @@ public struct AuthController: RouteCollection, Sendable {
         let accessToken = tokenValue.base64URLEncodedString()
         user.tokenID = try token.requireID()
 
-        await req.redis.cache(
+        await req.redisClient.cache(
             accessToken: accessToken,
             hashedAccessToken: hashedTokenValue.base64URLEncodedString(),
             user: user,
@@ -94,7 +96,7 @@ public struct AuthController: RouteCollection, Sendable {
         {
             token.isRevoked = true
             try await token.save(on: req.db)
-            await req.redis.invalidate(
+            await req.redisClient.invalidate(
                 hashedAccessToken: token.value.base64URLEncodedString(),
                 logger: req.logger
             )

@@ -3,6 +3,8 @@ import Fluent
 import Logging
 import Redis
 import Vapor
+import VaporRedisUtils
+import VaporUtils
 
 struct UserPatchIn: Content {
     public var displayName: String?
@@ -49,7 +51,7 @@ public struct UserController: RouteCollection, Sendable {
         if shouldInvalidateCache {
             try await req.db.transaction { db in
                 try await dbModel.save(on: db)
-                try await invalidateCache(userID: userID, db: db, redis: req.redis, logger: req.logger)
+                try await invalidateCache(userID: userID, db: db, redis: req.redisClient, logger: req.logger)
             }
         } else {
             try await dbModel.save(on: req.db)
@@ -69,7 +71,7 @@ public struct UserController: RouteCollection, Sendable {
         for token in tokens {
             token.isRevoked = true
             try await token.save(on: req.db)
-            await req.redis.invalidate(
+            await req.redisClient.invalidate(
                 hashedAccessToken: token.value.base64URLEncodedString(),
                 logger: req.logger
             )

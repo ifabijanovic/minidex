@@ -10,7 +10,6 @@ let package = Package(
         .library(name: "AuthDB", targets: ["AuthDB"]),
         .library(name: "AuthAPI", targets: ["AuthAPI"]),
         .library(name: "MiniDexDB", targets: ["MiniDexDB"]),
-        .library(name: "VaporUtils", targets: ["VaporUtils"]),
     ],
     dependencies: [
         // 💧 A server-side Swift web framework.
@@ -23,7 +22,8 @@ let package = Package(
         .package(url: "https://github.com/vapor/leaf.git", from: "4.3.0"),
         // 🔵 Non-blocking, event-driven networking for Swift. Used for custom executors
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0"),
-        .package(url: "https://github.com/vapor/redis.git", from: "4.0.0")
+        .package(url: "https://github.com/vapor/redis.git", from: "4.0.0"),
+        .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.5.0")
     ],
     targets: [
         .target(
@@ -38,6 +38,7 @@ let package = Package(
             dependencies: [
                 .target(name: "AuthDB"),
                 .target(name: "VaporUtils"),
+                .target(name: "VaporRedisUtils"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "Redis", package: "redis"),
                 .product(name: "Vapor", package: "vapor"),
@@ -68,10 +69,29 @@ let package = Package(
             swiftSettings: swiftSettings,
         ),
         .target(
+            name: "VaporRedisUtils",
+            dependencies: [
+                .product(name: "Vapor", package: "vapor"),
+                .product(name: "Redis", package: "redis"),
+            ],
+            swiftSettings: swiftSettings,
+        ),
+        .target(
             name: "VaporUtils",
             dependencies: [
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "Vapor", package: "vapor"),
+            ],
+            swiftSettings: swiftSettings,
+        ),
+        .testTarget(
+            name: "AuthAPITests",
+            dependencies: [
+                .target(name: "AuthAPI"),
+                .target(name: "VaporUtils"),
+                .target(name: "VaporRedisUtils"),
+                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+                .product(name: "VaporTesting", package: "vapor"),
             ],
             swiftSettings: swiftSettings,
         ),

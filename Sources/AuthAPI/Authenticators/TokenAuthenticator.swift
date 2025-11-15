@@ -2,12 +2,14 @@ import AuthDB
 import Fluent
 import Redis
 import Vapor
+import VaporRedisUtils
+import VaporUtils
 
 public struct TokenAuthenticator: AsyncBearerAuthenticator {
     public init() {}
 
     public func authenticate(bearer: BearerAuthorization, for request: Request) async throws {
-        if let cached = await request.redis.getCachedUser(accessToken: bearer.token, logger: request.logger) {
+        if let cached = await request.redisClient.getCachedUser(accessToken: bearer.token, logger: request.logger) {
             request.logger.debug("Token auth cache hit for userID: \(cached.id)")
             request.auth.login(cached)
             return
@@ -38,7 +40,7 @@ public struct TokenAuthenticator: AsyncBearerAuthenticator {
             )
             request.auth.login(user)
 
-            await request.redis.cache(
+            await request.redisClient.cache(
                 accessToken: bearer.token,
                 hashedAccessToken: hash.base64URLEncodedString(),
                 user: user,
