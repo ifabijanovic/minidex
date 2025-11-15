@@ -1,7 +1,7 @@
 import Fluent
 import Vapor
 
-struct ApiCrudController<DBModel, DTO, PatchDTO>: Sendable
+public struct ApiCrudController<DBModel, DTO, PatchDTO>: Sendable
 where
     DBModel: Model,
     DBModel.IDValue == UUID,
@@ -11,7 +11,7 @@ where
     let toDTO: @Sendable (DBModel) throws -> DTO
     let toModel: @Sendable (DTO) throws -> DBModel
 
-    init(
+    public init(
         toDTO: @Sendable @escaping (DBModel) throws -> DTO,
         toModel: @Sendable @escaping (DTO) throws -> DBModel,
     ) {
@@ -20,7 +20,7 @@ where
     }
 
     @Sendable
-    func index(req: Request) async throws -> [DTO] {
+    public func index(req: Request) async throws -> [DTO] {
         try await DBModel
             .query(on: req.db)
             .all()
@@ -28,12 +28,12 @@ where
     }
 
     @Sendable
-    func get(req: Request) async throws -> DTO {
+    public func get(req: Request) async throws -> DTO {
         try await toDTO(findById(req: req))
     }
 
     @Sendable
-    func create(req: Request) async throws -> DTO {
+    public func create(req: Request) async throws -> DTO {
         let input = try req.content.decode(DTO.self)
         let dbModel = try toModel(input)
         try await dbModel.save(on: req.db)
@@ -41,7 +41,7 @@ where
     }
 
     @Sendable
-    func update(
+    public func update(
         mutate: @Sendable @escaping (DBModel, PatchDTO) -> Void
     ) -> @Sendable (Request) async throws -> DTO {
         return { req in
@@ -54,7 +54,7 @@ where
     }
 
     @Sendable
-    func delete(req: Request) async throws -> HTTPStatus {
+    public func delete(req: Request) async throws -> HTTPStatus {
         let dbModel = try await findById(req: req)
         try await dbModel.delete(on: req.db)
         return .noContent

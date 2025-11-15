@@ -10,6 +10,7 @@ let package = Package(
         .library(name: "AuthDB", targets: ["AuthDB"]),
         .library(name: "AuthAPI", targets: ["AuthAPI"]),
         .library(name: "MiniDexDB", targets: ["MiniDexDB"]),
+        .library(name: "VaporUtils", targets: ["VaporUtils"]),
     ],
     dependencies: [
         // 💧 A server-side Swift web framework.
@@ -35,6 +36,7 @@ let package = Package(
             name: "AuthAPI",
             dependencies: [
                 .target(name: "AuthDB"),
+                .target(name: "VaporUtils"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "Vapor", package: "vapor"),
             ],
@@ -52,12 +54,21 @@ let package = Package(
             dependencies: [
                 .target(name: "AuthAPI"),
                 .target(name: "MiniDexDB"),
+                .target(name: "VaporUtils"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
                 .product(name: "Leaf", package: "leaf"),
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "NIOPosix", package: "swift-nio"),
+            ],
+            swiftSettings: swiftSettings,
+        ),
+        .target(
+            name: "VaporUtils",
+            dependencies: [
+                .product(name: "Fluent", package: "fluent"),
+                .product(name: "Vapor", package: "vapor"),
             ],
             swiftSettings: swiftSettings,
         ),

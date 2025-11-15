@@ -2,6 +2,7 @@ import AuthAPI
 import Fluent
 import MiniDexDB
 import Vapor
+import VaporUtils
 
 struct Mini: Content {
     var id: UUID?
@@ -29,18 +30,15 @@ struct MiniController: RouteCollection {
             .grouped("api", "mini")
             .grouped(TokenAuthenticator())
             .grouped(User.guardMiddleware())
+            .grouped(RequireAnyRolesMiddleware(roles: [.admin, .cataloguer]))
 
         root.get(use: crud.index)
         root.post(use: crud.create)
         root.group(":id") { route in
             route.get(use: crud.get)
             route.patch(use: crud.update { dbModel, patch in
-                if let name = patch.name {
-                    dbModel.name = name
-                }
-                if let gameSystemID = patch.gameSystemID {
-                    dbModel.$gameSystem.id = gameSystemID
-                }
+                if let value = patch.name { dbModel.name = value }
+                if let value = patch.gameSystemID { dbModel.$gameSystem.id = value }
             })
             route.delete(use: crud.delete)
         }

@@ -15,6 +15,7 @@ func routes(_ app: Application) throws {
         tokenLength: Settings.Auth.tokenLength,
         accessTokenExpiration: Settings.Auth.accessTokenExpiration,
     ))
+    try app.register(collection: UserController())
     try app.register(collection: MiniController())
     try app.register(collection: GameSystemController())
 }

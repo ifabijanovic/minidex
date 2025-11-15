@@ -3,7 +3,7 @@ import Vapor
 public struct Roles: OptionSet, Codable, Sendable {
     public let rawValue: UInt
 
-    static let admin = Roles(rawValue: 1 << 0)
+    public static let admin = Roles(rawValue: 1 << 0)
 
     public init(rawValue: UInt) {
         self.rawValue = rawValue
