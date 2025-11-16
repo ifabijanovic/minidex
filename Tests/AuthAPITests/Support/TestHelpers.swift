@@ -1,4 +1,4 @@
-import AuthAPI
+@testable import AuthAPI
 import AuthDB
 import Crypto
 import Fluent
@@ -67,18 +67,13 @@ enum AuthAPITestHelpers {
         req.headers.bearerAuthorization = .init(token: token)
     }
 
-    static func hashAccessToken(_ token: String) throws -> String {
-        guard let decoded = token.base64URLDecodedData() else {
-            throw Abort(.internalServerError, reason: "Failed to decode access token")
-        }
-        let digest = SHA256.hash(data: decoded)
-        return Data(digest).base64URLEncodedString()
-    }
-
     static func assertCacheCleared(for login: LoginResponse, redis: InMemoryRedisDriver) throws {
         let snapshot = redis.snapshot()
         let userKey = RedisKey("token:\(login.accessToken)")
-        let hashedKey = RedisKey("token_hash:\(try hashAccessToken(login.accessToken))")
+        guard let hashedAccessToken = TokenAuthenticator.hashAccessToken(login.accessToken) else {
+            throw Abort(.internalServerError, reason: "Failed to decode access token")
+        }
+        let hashedKey = RedisKey("token_hash:\(hashedAccessToken.base64URLEncodedString())")
 
         #expect(snapshot.entries[userKey] == nil)
         #expect(snapshot.entries[hashedKey] == nil)

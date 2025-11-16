@@ -36,21 +36,29 @@ public struct UserController: RouteCollection, Sendable {
         }
         let patch = try req.content.decode(UserPatchIn.self)
 
-        var shouldInvalidateCache = false
+        var userAccessChanged = false
         if let value = patch.displayName { dbModel.displayName = value }
         if let value = patch.roles {
+            userAccessChanged = dbModel.roles != value.rawValue
             dbModel.roles = value.rawValue
-            shouldInvalidateCache = true
         }
         if let value = patch.isActive {
+            userAccessChanged = userAccessChanged || (dbModel.isActive != value)
             dbModel.isActive = value
-            shouldInvalidateCache = true
         }
 
         let updated = try User(db: dbModel)
-        if shouldInvalidateCache {
+
+        if userAccessChanged {
             try await req.db.transaction { db in
                 try await dbModel.save(on: db)
+
+                try await DBUserToken
+                    .query(on: db)
+                    .filter(\.$user.$id == userID)
+                    .set(\.$isRevoked, to: true)
+                    .update()
+                
                 try await invalidateCache(userID: userID, db: db, redis: req.redisClient, logger: req.logger)
             }
         } else {
@@ -63,18 +71,10 @@ public struct UserController: RouteCollection, Sendable {
     @Sendable
     func revokeAccess(req: Request) async throws -> HTTPStatus {
         let userID = try req.parameters.require("id", as: UUID.self)
-        let tokens = try await DBUserToken
-            .query(on: req.db)
-            .filter(\.$user.$id == userID)
-            .all()
+        let tokens = try await DBUserToken.allTokens(forUserID: userID, on: req.db)
 
         for token in tokens {
-            token.isRevoked = true
-            try await token.save(on: req.db)
-            await req.redisClient.invalidate(
-                hashedAccessToken: token.value.base64URLEncodedString(),
-                logger: req.logger
-            )
+            try await TokenRevocation.revoke(token, on: req.db, redis: req.redisClient, logger: req.logger)
         }
 
         return .ok
@@ -86,10 +86,7 @@ public struct UserController: RouteCollection, Sendable {
         redis: any RedisClient,
         logger: Logger,
     ) async throws {
-        let tokens = try await DBUserToken
-            .query(on: db)
-            .filter(\.$user.$id == userID)
-            .all()
+        let tokens = try await DBUserToken.allTokens(forUserID: userID, on: db)
 
         for token in tokens {
             let hashed = token.value.base64URLEncodedString()

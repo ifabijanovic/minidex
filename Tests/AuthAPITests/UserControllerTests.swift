@@ -9,17 +9,18 @@ import VaporRedisUtils
 
 @Suite("UserController", .serialized)
 struct UserControllerTests {
-    @Test("patch display name does not invalidate cache")
-    func patchDisplayNameIgnoresCache() async throws {
+    @Test("patch display name does not revoke tokens")
+    func patchDisplayNameDoesNotRevokeTokens() async throws {
         try await AuthAPITestApp.withApp { app, redis in
             let (_, adminToken) = try await makeAdmin(app: app)
             let target = try await AuthAPITestHelpers.createUser(
                 on: app.db,
                 username: "may",
-                roles: [],
+                roles: [.admin],
                 isActive: true
             )
             let targetID = try target.requireID()
+            _ = try await AuthAPITestHelpers.login(app: app, username: "may", password: "Password!23")
 
             try await app.testing().test(
                 .PATCH,
@@ -35,12 +36,17 @@ struct UserControllerTests {
                 }
             )
 
+            let tokens = try await DBUserToken.query(on: app.db)
+                .filter(\.$user.$id == targetID)
+                .all()
+            #expect(tokens.allSatisfy { !$0.isRevoked })
+
             #expect(redis.snapshot().deleteCalls.isEmpty)
         }
     }
 
-    @Test("patch roles invalidates cached tokens")
-    func patchRolesInvalidatesCache() async throws {
+    @Test("patch roles revokes and invalidates tokens")
+    func patchRolesRevokesTokens() async throws {
         try await AuthAPITestApp.withApp { app, redis in
             let (_, adminToken) = try await makeAdmin(app: app)
             let target = try await AuthAPITestHelpers.createUser(
@@ -67,12 +73,17 @@ struct UserControllerTests {
                 }
             )
 
+            let tokens = try await DBUserToken.query(on: app.db)
+                .filter(\.$user.$id == targetID)
+                .all()
+            #expect(tokens.allSatisfy { $0.isRevoked })
+
             try AuthAPITestHelpers.assertCacheCleared(for: targetLogin, redis: redis)
         }
     }
 
-    @Test("patch isActive invalidates cached tokens")
-    func patchActivityInvalidatesCache() async throws {
+    @Test("patch isActive revokes and invalidates tokens")
+    func patchActivityRevokesTokens() async throws {
         try await AuthAPITestApp.withApp { app, redis in
             let (_, adminToken) = try await makeAdmin(app: app)
             let target = try await AuthAPITestHelpers.createUser(
@@ -98,7 +109,149 @@ struct UserControllerTests {
                 }
             )
 
+            let tokens = try await DBUserToken.query(on: app.db)
+                .filter(\.$user.$id == targetID)
+                .all()
+            #expect(tokens.allSatisfy { $0.isRevoked })
+
             try AuthAPITestHelpers.assertCacheCleared(for: targetLogin, redis: redis)
+        }
+    }
+
+    @Test("patch roles to same value does not revoke tokens")
+    func patchRolesToSameValueDoesNotRevokeTokens() async throws {
+        try await AuthAPITestApp.withApp { app, redis in
+            let (_, adminToken) = try await makeAdmin(app: app)
+            let target = try await AuthAPITestHelpers.createUser(
+                on: app.db,
+                username: "brock",
+                roles: [.admin],
+                isActive: true
+            )
+            let targetID = try target.requireID()
+            let targetLogin = try await AuthAPITestHelpers.login(app: app, username: "brock", password: "Password!23")
+
+            try await app.testing().test(
+                .PATCH,
+                "api/user/\(targetID)",
+                beforeRequest: { req in
+                    AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
+                    try req.content.encode(UserPatchIn(displayName: nil, roles: [.admin], isActive: nil))
+                },
+                afterResponse: { res async throws in
+                    #expect(res.status == .ok)
+                }
+            )
+
+            let tokens = try await DBUserToken.query(on: app.db)
+                .filter(\.$user.$id == targetID)
+                .all()
+            #expect(tokens.allSatisfy { !$0.isRevoked })
+
+            try await app.testing().test(
+                .POST,
+                "api/auth/logout",
+                beforeRequest: { req in
+                    AuthAPITestHelpers.authorize(&req, token: targetLogin.accessToken)
+                },
+                afterResponse: { res async in
+                    #expect(res.status == .ok)
+                }
+            )
+        }
+    }
+
+    @Test("patch isActive to same value does not revoke tokens")
+    func patchIsActiveToSameValueDoesNotRevokeTokens() async throws {
+        try await AuthAPITestApp.withApp { app, redis in
+            let (_, adminToken) = try await makeAdmin(app: app)
+            let target = try await AuthAPITestHelpers.createUser(
+                on: app.db,
+                username: "misty",
+                roles: [.admin],
+                isActive: true
+            )
+            let targetID = try target.requireID()
+            let targetLogin = try await AuthAPITestHelpers.login(app: app, username: "misty", password: "Password!23")
+
+            try await app.testing().test(
+                .PATCH,
+                "api/user/\(targetID)",
+                beforeRequest: { req in
+                    AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
+                    try req.content.encode(UserPatchIn(displayName: nil, roles: nil, isActive: true))
+                },
+                afterResponse: { res async throws in
+                    #expect(res.status == .ok)
+                }
+            )
+
+            let tokens = try await DBUserToken.query(on: app.db)
+                .filter(\.$user.$id == targetID)
+                .all()
+            #expect(tokens.allSatisfy { !$0.isRevoked })
+
+            try await app.testing().test(
+                .POST,
+                "api/auth/logout",
+                beforeRequest: { req in
+                    AuthAPITestHelpers.authorize(&req, token: targetLogin.accessToken)
+                },
+                afterResponse: { res async in
+                    #expect(res.status == .ok)
+                }
+            )
+        }
+    }
+
+    @Test("user cannot authenticate after role change")
+    func userRejectedAfterRoleChange() async throws {
+        try await AuthAPITestApp.withApp { app, redis in
+            let (_, adminToken) = try await makeAdmin(app: app)
+            let target = try await AuthAPITestHelpers.createUser(
+                on: app.db,
+                username: "cynthia",
+                roles: [.admin],
+                isActive: true
+            )
+            let targetID = try target.requireID()
+            let targetLogin = try await AuthAPITestHelpers.login(app: app, username: "cynthia", password: "Password!23")
+
+            try await app.testing().test(
+                .POST,
+                "api/auth/logout",
+                beforeRequest: { req in
+                    AuthAPITestHelpers.authorize(&req, token: targetLogin.accessToken)
+                },
+                afterResponse: { res async in
+                    #expect(res.status == .ok)
+                }
+            )
+
+            let targetLogin2 = try await AuthAPITestHelpers.login(app: app, username: "cynthia", password: "Password!23")
+
+            try await app.testing().test(
+                .PATCH,
+                "api/user/\(targetID)",
+                beforeRequest: { req in
+                    AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
+                    try req.content.encode(UserPatchIn(displayName: nil, roles: [], isActive: nil))
+                },
+                afterResponse: { res async throws in
+                    #expect(res.status == .ok)
+                }
+            )
+
+            try await app.testing().test(
+                .POST,
+                "api/auth/logout",
+                beforeRequest: { req in
+                    AuthAPITestHelpers.authorize(&req, token: targetLogin2.accessToken)
+                },
+                afterResponse: { res async in
+                    #expect(res.status == .unauthorized)
+                }
+            )
         }
     }
 
@@ -148,8 +301,7 @@ struct UserControllerTests {
             let tokens = try await DBUserToken.query(on: app.db)
                 .filter(\.$user.$id == targetID)
                 .all()
-            let allRevoked = tokens.allSatisfy(\.isRevoked)
-            #expect(allRevoked)
+            #expect(tokens.allSatisfy { $0.isRevoked })
 
             try AuthAPITestHelpers.assertCacheCleared(for: targetLogin, redis: redis)
         }

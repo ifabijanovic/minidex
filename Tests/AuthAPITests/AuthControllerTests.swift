@@ -29,7 +29,11 @@ struct AuthControllerTests {
 
             let snapshot = redis.snapshot()
             let userKey = RedisKey("token:\(login.accessToken)")
-            let hashedKey = RedisKey("token_hash:\(try AuthAPITestHelpers.hashAccessToken(login.accessToken))")
+            guard let hash = TokenAuthenticator.hashAccessToken(login.accessToken) else {
+                Issue.record("Failed to hash access token")
+                return
+            }
+            let hashedKey = RedisKey("token_hash:\(hash.base64URLEncodedString())")
 
             let cachedUserData = try #require(snapshot.entries[userKey]?.data)
             let cachedUser = try JSONDecoder().decode(AuthUser.self, from: cachedUserData)
@@ -146,6 +150,128 @@ struct AuthControllerTests {
             #expect(tokens.first?.isRevoked == true)
 
             try AuthAPITestHelpers.assertCacheCleared(for: login, redis: redis)
+        }
+    }
+
+    @Test("logout returns not found when token missing")
+    func logoutWithMissingTokenReturnsNotFound() async throws {
+        try await AuthAPITestApp.withApp { app, redis in
+            let user = try await AuthAPITestHelpers.createUser(
+                on: app.db,
+                username: "cilan",
+                roles: [.admin],
+                isActive: true
+            )
+            let login = try await AuthAPITestHelpers.login(app: app, username: "cilan", password: "Password!23")
+
+            let token = try await DBUserToken.query(on: app.db)
+                .filter(\.$user.$id == user.requireID())
+                .first()
+            try await token?.delete(on: app.db)
+
+            try await app.testing().test(
+                .POST,
+                "api/auth/logout",
+                beforeRequest: { req in
+                    AuthAPITestHelpers.authorize(&req, token: login.accessToken)
+                },
+                afterResponse: { res async in
+                    #expect(res.status == .unauthorized)
+                }
+            )
+        }
+    }
+
+    @Test("logout succeeds even if Redis invalidation fails")
+    func logoutHandlesRedisInvalidationFailure() async throws {
+        try await AuthAPITestApp.withApp { app, redis in
+            let user = try await AuthAPITestHelpers.createUser(
+                on: app.db,
+                username: "iris",
+                roles: [.admin],
+                isActive: true
+            )
+            let userID = try user.requireID()
+            let login = try await AuthAPITestHelpers.login(app: app, username: "iris", password: "Password!23")
+
+            redis.failNextCommand("DEL")
+
+            try await app.testing().test(
+                .POST,
+                "api/auth/logout",
+                beforeRequest: { req in
+                    AuthAPITestHelpers.authorize(&req, token: login.accessToken)
+                },
+                afterResponse: { res async in
+                    #expect(res.status == .ok)
+                }
+            )
+
+            let tokens = try await DBUserToken.query(on: app.db)
+                .filter(\.$user.$id == userID)
+                .all()
+            #expect(tokens.count == 1)
+            #expect(tokens.first?.isRevoked == true)
+        }
+    }
+
+    @Test("registration rejects duplicate username")
+    func registrationRejectsDuplicateUsername() async throws {
+        try await AuthAPITestApp.withApp { app, _ in
+            _ = try await AuthAPITestHelpers.createUser(
+                on: app.db,
+                username: "clemont",
+                roles: [],
+                isActive: false
+            )
+
+            try await app.testing().test(
+                .POST,
+                "api/auth/register",
+                beforeRequest: { req in
+                    try req.content.encode([
+                        "username": "clemont",
+                        "password": "NewPassword!23",
+                        "confirmPassword": "NewPassword!23"
+                    ])
+                },
+                afterResponse: { res async in
+                    #expect(res.status == .conflict)
+                }
+            )
+
+            let credentials = try await DBCredential.query(on: app.db)
+                .filter(\.$identifier == "clemont")
+                .count()
+            #expect(credentials == 1)
+        }
+    }
+
+    @Test("registration succeeds for new username")
+    func registrationSucceedsForNewUser() async throws {
+        try await AuthAPITestApp.withApp { app, _ in
+            try await app.testing().test(
+                .POST,
+                "api/auth/register",
+                beforeRequest: { req in
+                    try req.content.encode([
+                        "username": "bonnie",
+                        "password": "Password!23",
+                        "confirmPassword": "Password!23"
+                    ])
+                },
+                afterResponse: { res async in
+                    #expect(res.status == .created)
+                }
+            )
+
+            let credential = try await DBCredential.query(on: app.db)
+                .filter(\.$identifier == "bonnie")
+                .first()
+
+            let user = try await credential?.$user.get(on: app.db)
+            #expect(user?.isActive == false)
+            #expect(user?.roles == 0)
         }
     }
 }

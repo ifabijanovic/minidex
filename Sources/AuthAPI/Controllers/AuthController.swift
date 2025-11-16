@@ -90,18 +90,14 @@ public struct AuthController: RouteCollection, Sendable {
     func logout(req: Request) async throws -> HTTPStatus {
         let user = try req.auth.require(AuthUser.self)
 
-        if
+        guard
             let tokenID = user.tokenID,
             let token = try await DBUserToken.find(tokenID, on: req.db)
-        {
-            token.isRevoked = true
-            try await token.save(on: req.db)
-            await req.redisClient.invalidate(
-                hashedAccessToken: token.value.base64URLEncodedString(),
-                logger: req.logger
-            )
+        else {
+            throw Abort(.notFound)
         }
-
+        
+        try await TokenRevocation.revoke(token, on: req.db, redis: req.redisClient, logger: req.logger)
         return .ok
     }
 
@@ -119,12 +115,11 @@ public struct AuthController: RouteCollection, Sendable {
             .filter(\.$identifier == input.username)
             .first() != nil
         {
-            req.logger.warning("Attempted to register with existing username '\(input.username)'")
-            return .created
+            throw Abort(.conflict, reason: "Username already taken")
         }
 
         try await req.db.transaction { db in
-            let user = DBUser()
+            let user = DBUser(roles: 0, isActive: false)
             try await user.save(on: db)
 
             let credential = DBCredential(
