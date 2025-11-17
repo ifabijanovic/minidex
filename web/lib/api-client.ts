@@ -5,14 +5,17 @@
 
 import { API_BASE_URL } from '@/lib/query-client'
 
-export interface ApiRequestOptions extends RequestInit {
-  params?: Record<string, string | number | boolean>
+type QueryParams = Record<string, string | number | boolean>
+
+export interface ApiRequestOptions<TBody = unknown> extends Omit<RequestInit, 'body'> {
+  params?: QueryParams
+  body?: TBody
 }
 
 /**
  * Builds a URL with query parameters
  */
-function buildUrl(path: string, params?: Record<string, string | number | boolean>): string {
+function buildUrl(path: string, params?: QueryParams): string {
   let url = path
   if (params && Object.keys(params).length > 0) {
     const searchParams = new URLSearchParams()
@@ -25,22 +28,64 @@ function buildUrl(path: string, params?: Record<string, string | number | boolea
 }
 
 /**
+ * Determines whether the provided body can be sent as-is
+ */
+function isNativeBody(body: unknown): body is BodyInit {
+  if (body == null) return false
+  return (
+    typeof body === 'string' ||
+    body instanceof Blob ||
+    body instanceof FormData ||
+    body instanceof URLSearchParams ||
+    body instanceof ReadableStream ||
+    body instanceof ArrayBuffer ||
+    ArrayBuffer.isView(body)
+  )
+}
+
+/**
+ * Prepares the body for fetch and returns the serialized body plus any headers to include
+ */
+function prepareBody(body: unknown): { payload?: BodyInit; contentType?: string } {
+  if (body == null) {
+    return {}
+  }
+
+  if (isNativeBody(body)) {
+    return { payload: body }
+  }
+
+  return {
+    payload: JSON.stringify(body),
+    contentType: 'application/json',
+  }
+}
+
+/**
  * Makes a request to a Next.js API proxy route
  * All requests automatically go through /api/* routes
  */
-export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
-  const { params, ...fetchOptions } = options
+export async function apiRequest<TResponse, TBody = unknown>(
+  path: string,
+  options: ApiRequestOptions<TBody> = {}
+): Promise<TResponse> {
+  const { params, body, headers: customHeaders, ...fetchOptions } = options
 
   // Ensure path starts with /api
   const apiPath = path.startsWith('/api') ? path : `${API_BASE_URL}${path}`
   const url = buildUrl(apiPath, params)
 
+  const { payload, contentType: preparedContentType } = prepareBody(body)
+
+  const headers: HeadersInit = {
+    ...(preparedContentType ? { 'Content-Type': preparedContentType } : {}),
+    ...customHeaders,
+  }
+
   const response = await fetch(url, {
     ...fetchOptions,
-    headers: {
-      'Content-Type': 'application/json',
-      ...fetchOptions.headers,
-    },
+    headers,
+    body: payload,
   })
 
   if (!response.ok) {
@@ -56,37 +101,49 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
     return response.json()
   }
 
-  return response.text() as unknown as T
+  return response.text() as unknown as TResponse
 }
 
 /**
  * Convenience methods for common HTTP verbs
  */
 export const api = {
-  get: <T>(path: string, options?: Omit<ApiRequestOptions, 'method' | 'body'>) =>
-    apiRequest<T>(path, { ...options, method: 'GET' }),
+  get: <TResponse>(path: string, options?: Omit<ApiRequestOptions, 'method' | 'body'>) =>
+    apiRequest<TResponse>(path, { ...options, method: 'GET' }),
 
-  post: <T>(path: string, data?: unknown, options?: Omit<ApiRequestOptions, 'method'>) =>
-    apiRequest<T>(path, {
+  post: <TResponse, TBody = unknown>(
+    path: string,
+    body?: TBody,
+    options?: Omit<ApiRequestOptions<TBody>, 'method' | 'body'>
+  ) =>
+    apiRequest<TResponse, TBody>(path, {
       ...options,
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body,
     }),
 
-  put: <T>(path: string, data?: unknown, options?: Omit<ApiRequestOptions, 'method'>) =>
-    apiRequest<T>(path, {
+  put: <TResponse, TBody = unknown>(
+    path: string,
+    body?: TBody,
+    options?: Omit<ApiRequestOptions<TBody>, 'method' | 'body'>
+  ) =>
+    apiRequest<TResponse, TBody>(path, {
       ...options,
       method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
+      body,
     }),
 
-  patch: <T>(path: string, data?: unknown, options?: Omit<ApiRequestOptions, 'method'>) =>
-    apiRequest<T>(path, {
+  patch: <TResponse, TBody = unknown>(
+    path: string,
+    body?: TBody,
+    options?: Omit<ApiRequestOptions<TBody>, 'method' | 'body'>
+  ) =>
+    apiRequest<TResponse, TBody>(path, {
       ...options,
       method: 'PATCH',
-      body: data ? JSON.stringify(data) : undefined,
+      body,
     }),
 
-  delete: <T>(path: string, options?: Omit<ApiRequestOptions, 'method' | 'body'>) =>
-    apiRequest<T>(path, { ...options, method: 'DELETE' }),
+  delete: <TResponse>(path: string, options?: Omit<ApiRequestOptions, 'method'>) =>
+    apiRequest<TResponse>(path, { ...options, method: 'DELETE' }),
 }
