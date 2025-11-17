@@ -1,7 +1,7 @@
-# Docker Compose file for Vapor
+# Docker Compose file for MiniDex
 #
 # Install Docker on your system to run and test
-# your Vapor app in a production-like environment.
+# your MiniDex app in a production-like environment.
 #
 # Note: This file is intended for testing and does not
 # implement best practices for a production deployment.
@@ -9,7 +9,9 @@
 # Learn more: https://docs.docker.com/compose/reference/
 #
 #   Build images: docker compose build
-#      Start app: docker compose up app
+#      Start all: docker compose up
+#   Start server: docker compose up server
+#      Start web: docker compose up web
 # Start database: docker compose up db
 # Run migrations: docker compose run --rm migrate
 #       Stop all: docker compose down (add -v to wipe db)
@@ -32,7 +34,7 @@ x-shared_environment: &shared_environment
   REDIS_PORT: 6379
 
 services:
-  app:
+  server:
     image: minidex-server:latest
     build:
       context: .
@@ -40,10 +42,24 @@ services:
       <<: *shared_environment
     depends_on:
       - db
+      - redis
     ports:
       - '8080:8080'
     # user: '0' # uncomment to run as root for testing purposes even though Dockerfile defines 'vapor' user.
     command: ["serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8080"]
+  web:
+    image: minidex-web:latest
+    build:
+      context: ./web
+    environment:
+      # API URL for Next.js API routes to call Vapor server
+      # Uses internal Docker network service name
+      API_URL: http://server:8080
+      NODE_ENV: production
+    depends_on:
+      - server
+    ports:
+      - '3000:3000'
   migrate:
     image: minidex-server:latest
     environment:
