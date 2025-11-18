@@ -6,5 +6,10 @@ DerivedData/
 .DS_Store
 db.sqlite
 .swiftpm
-.env.*
+.env
+node_modules/
+web/node_modules/
+web/.next/
+*.tsbuildinfo
 default.profraw
+.idea

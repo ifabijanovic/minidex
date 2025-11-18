@@ -24,7 +24,7 @@ enum Settings {
 }
 
 struct InvalidDBSettingsError: Error, CustomStringConvertible, CustomNSError {
-    static let errorDomain = "hr.daylight.minidex.server"
+    static let errorDomain = "minidex.server"
     let key: String
     
     var description: String {
