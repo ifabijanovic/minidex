@@ -29,5 +29,5 @@ npm start
 
 ## Environment Variables
 
-- `API_URL` - The URL of the Vapor API server (default: `http://localhost:8080`)
+- `API_URL` - The base URL of the Vapor API server (default: `http://localhost:8080`). Requests are proxied to `${API_URL}/v1/*`.
 - `NEXT_PUBLIC_API_URL` - Public API URL for client-side requests (default: `/api`)

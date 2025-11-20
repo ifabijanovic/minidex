@@ -15,14 +15,29 @@ struct UserPatchIn: Content {
 public struct UserController: RouteCollection, Sendable {
     public init() {}
 
+    let crud: ApiCrudController<DBUser, User, UserPatchIn> = .init(
+        toDTO: { try .init(db: $0) },
+        toModel: {
+            .init(
+                id: $0.id,
+                displayName: $0.displayName,
+                roles: $0.roles.rawValue,
+                isActive: $0.isActive
+            )
+        }
+    )
+
     public func boot(routes: any RoutesBuilder) throws {
         let root = routes
-            .grouped("api", "user")
+            .grouped("v1", "user")
             .grouped(TokenAuthenticator())
             .grouped(AuthUser.guardMiddleware())
             .grouped(RequireAdminMiddleware())
 
+        root.get(use: crud.index)
+        root.post(use: crud.create)
         root.group(":id") { route in
+            route.get(use: crud.get)
             route.patch(use: self.update)
             route.post("revokeAccess", use: self.revokeAccess)
         }

@@ -58,7 +58,7 @@ struct AuthControllerTests {
 
             try await app.testing().test(
                 .POST,
-                "api/auth/login",
+                "v1/auth/login",
                 beforeRequest: { req in
                     req.headers.basicAuthorization = .init(username: "brock", password: "Password!23")
                 },
@@ -85,7 +85,7 @@ struct AuthControllerTests {
 
             try await app.testing().test(
                 .POST,
-                "api/auth/login",
+                "v1/auth/login",
                 beforeRequest: { req in
                     req.headers.basicAuthorization = .init(username: "misty", password: "Password!23")
                 },
@@ -134,7 +134,7 @@ struct AuthControllerTests {
 
             try await app.testing().test(
                 .POST,
-                "api/auth/logout",
+                "v1/auth/logout",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: login.accessToken)
                 },
@@ -171,7 +171,7 @@ struct AuthControllerTests {
 
             try await app.testing().test(
                 .POST,
-                "api/auth/logout",
+                "v1/auth/logout",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: login.accessToken)
                 },
@@ -198,7 +198,7 @@ struct AuthControllerTests {
 
             try await app.testing().test(
                 .POST,
-                "api/auth/logout",
+                "v1/auth/logout",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: login.accessToken)
                 },
@@ -227,7 +227,7 @@ struct AuthControllerTests {
 
             try await app.testing().test(
                 .POST,
-                "api/auth/register",
+                "v1/auth/register",
                 beforeRequest: { req in
                     try req.content.encode([
                         "username": "clemont",
@@ -252,7 +252,7 @@ struct AuthControllerTests {
         try await AuthAPITestApp.withApp { app, _ in
             try await app.testing().test(
                 .POST,
-                "api/auth/register",
+                "v1/auth/register",
                 beforeRequest: { req in
                     try req.content.encode([
                         "username": "bonnie",

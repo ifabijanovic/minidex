@@ -32,7 +32,7 @@ public struct AuthController: RouteCollection, Sendable {
     }
 
     public func boot(routes: any RoutesBuilder) throws {
-        let group = routes.grouped("api", "auth")
+        let group = routes.grouped("v1", "auth")
         group.post("register", use: self.register)
 
         group

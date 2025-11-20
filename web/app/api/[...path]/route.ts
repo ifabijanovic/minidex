@@ -4,82 +4,87 @@
  * This route handles all API requests and forwards them to the Vapor server
  * with the authentication token from HttpOnly cookies.
  *
- * Usage: /api/* will be proxied to http://server:8080/*
+ * Usage: /api/* will be proxied to http://server:8080/v1/*
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 
-const API_URL = process.env.API_URL || 'http://localhost:8080'
+const API_URL = process.env.API_URL || "http://localhost:8080";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  { params }: { params: Promise<{ path: string[] }> },
 ) {
-  const { path } = await params
-  return proxyRequest(request, path, 'GET')
+  const { path } = await params;
+  return proxyRequest(request, path, "GET");
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  { params }: { params: Promise<{ path: string[] }> },
 ) {
-  const { path } = await params
-  return proxyRequest(request, path, 'POST')
+  const { path } = await params;
+  return proxyRequest(request, path, "POST");
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  { params }: { params: Promise<{ path: string[] }> },
 ) {
-  const { path } = await params
-  return proxyRequest(request, path, 'PUT')
+  const { path } = await params;
+  return proxyRequest(request, path, "PUT");
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  { params }: { params: Promise<{ path: string[] }> },
 ) {
-  const { path } = await params
-  return proxyRequest(request, path, 'PATCH')
+  const { path } = await params;
+  return proxyRequest(request, path, "PATCH");
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  { params }: { params: Promise<{ path: string[] }> },
 ) {
-  const { path } = await params
-  return proxyRequest(request, path, 'DELETE')
+  const { path } = await params;
+  return proxyRequest(request, path, "DELETE");
 }
 
-async function proxyRequest(request: NextRequest, pathSegments: string[], method: string) {
+async function proxyRequest(
+  request: NextRequest,
+  pathSegments: string[],
+  method: string,
+) {
   try {
-    // Reconstruct the path
-    const path = `/${pathSegments.join('/')}`
+    // Reconstruct the versioned path
+    const relativePath = pathSegments.join("/");
+    const path = `/v1${relativePath ? `/${relativePath}` : ""}`;
 
     // Get query parameters from the request
-    const searchParams = request.nextUrl.searchParams
-    const queryString = searchParams.toString()
-    const url = `${API_URL}${path}${queryString ? `?${queryString}` : ''}`
+    const searchParams = request.nextUrl.searchParams;
+    const queryString = searchParams.toString();
+    const url = `${API_URL}${path}${queryString ? `?${queryString}` : ""}`;
 
     // Get the auth token from HttpOnly cookie
     // TODO: Implement cookie reading when authentication is set up
-    const authToken = request.cookies.get('auth_token')?.value
+    const authToken = request.cookies.get("auth_token")?.value;
 
     // Prepare headers
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    }
+      "Content-Type": "application/json",
+    };
 
     // Add Authorization header if token exists
     if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`
+      headers["Authorization"] = `Bearer ${authToken}`;
     }
 
     // Forward the request body if present
-    let body: string | undefined
-    if (method !== 'GET' && method !== 'DELETE') {
+    let body: string | undefined;
+    if (method !== "GET" && method !== "DELETE") {
       try {
-        body = await request.text()
+        body = await request.text();
       } catch {
         // No body to forward
       }
@@ -90,34 +95,37 @@ async function proxyRequest(request: NextRequest, pathSegments: string[], method
       method,
       headers,
       body,
-    })
+    });
 
     // Get response data
-    const contentType = response.headers.get('content-type')
-    let data: unknown
+    const contentType = response.headers.get("content-type");
+    let data: unknown;
 
-    if (contentType?.includes('application/json')) {
-      data = await response.json()
+    if (contentType?.includes("application/json")) {
+      data = await response.json();
     } else {
-      data = await response.text()
+      data = await response.text();
     }
 
     // Create response with same status and headers
     const nextResponse = NextResponse.json(data, {
       status: response.status,
-    })
+    });
 
     // Forward relevant headers (excluding ones that shouldn't be forwarded)
-    const headersToForward = ['content-type', 'content-length']
+    const headersToForward = ["content-type", "content-length"];
     response.headers.forEach((value, key) => {
       if (headersToForward.includes(key.toLowerCase())) {
-        nextResponse.headers.set(key, value)
+        nextResponse.headers.set(key, value);
       }
-    })
+    });
 
-    return nextResponse
+    return nextResponse;
   } catch (error) {
-    console.error('Proxy error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error("Proxy error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

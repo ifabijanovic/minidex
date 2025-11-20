@@ -1,16 +1,21 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import { AppThemeProvider } from '@/app/theme-provider'
-import { QueryProvider } from '@/app/query-provider'
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 
-const inter = Inter({ subsets: ['latin'] })
+import { QueryProvider } from "@/app/query-provider";
+import { AppThemeProvider } from "@/app/theme-provider";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'MiniDex',
-  description: 'MiniDex Web Application',
-}
+  title: "MiniDex",
+  description: "MiniDex Web Application",
+};
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body className={inter.className}>
@@ -19,5 +24,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </QueryProvider>
       </body>
     </html>
-  )
+  );
 }

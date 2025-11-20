@@ -47,7 +47,7 @@ enum AuthAPITestHelpers {
         var response: LoginResponse?
         try await app.testing().test(
             .POST,
-            "api/auth/login",
+            "v1/auth/login",
             beforeRequest: { req in
                 req.headers.basicAuthorization = .init(username: username, password: password)
             },

@@ -1,7 +1,7 @@
-import { QueryClient } from '@tanstack/react-query'
+import { QueryClient } from "@tanstack/react-query";
 
 // Base URL for API calls - all calls go through Next.js proxy routes
-export const API_BASE_URL = '/api'
+export const API_BASE_URL = "/api";
 
 // Default query client configuration
 export const queryClient = new QueryClient({
@@ -20,4 +20,4 @@ export const queryClient = new QueryClient({
       retry: 1,
     },
   },
-})
+});

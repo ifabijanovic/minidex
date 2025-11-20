@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import { Container, Typography, Box } from '@mui/material'
+import { Box, Container, Typography } from "@mui/material";
 
 export default function Home() {
   return (
     <Container maxWidth="md">
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          textAlign: 'center',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "100vh",
+          textAlign: "center",
         }}
       >
         <Typography variant="h2" component="h1" gutterBottom>
@@ -23,5 +23,5 @@ export default function Home() {
         </Typography>
       </Box>
     </Container>
-  )
+  );
 }
