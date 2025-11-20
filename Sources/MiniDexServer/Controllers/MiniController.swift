@@ -27,7 +27,7 @@ struct MiniController: RouteCollection {
 
     func boot(routes: any RoutesBuilder) throws {
         let root = routes
-            .grouped("api", "mini")
+            .grouped("v1", "mini")
             .grouped(TokenAuthenticator())
             .grouped(AuthUser.guardMiddleware())
             .grouped(RequireAnyRolesMiddleware(roles: [.admin, .cataloguer]))

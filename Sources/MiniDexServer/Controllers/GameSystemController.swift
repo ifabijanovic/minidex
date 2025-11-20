@@ -26,7 +26,7 @@ struct GameSystemController: RouteCollection {
 
     func boot(routes: any RoutesBuilder) throws {
         let root = routes
-            .grouped("api", "gamesystem")
+            .grouped("v1", "gamesystem")
             .grouped(TokenAuthenticator())
             .grouped(AuthUser.guardMiddleware())
             .grouped(RequireAnyRolesMiddleware(roles: [.admin, .cataloguer]))

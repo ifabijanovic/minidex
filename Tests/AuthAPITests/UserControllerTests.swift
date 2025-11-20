@@ -24,7 +24,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .PATCH,
-                "api/user/\(targetID)",
+                "v1/user/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
                     try req.content.encode(UserPatchIn(displayName: "Updated", roles: nil, isActive: nil))
@@ -61,7 +61,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .PATCH,
-                "api/user/\(targetID)",
+                "v1/user/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
                     try req.content.encode(UserPatchIn(displayName: nil, roles: [], isActive: nil))
@@ -97,7 +97,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .PATCH,
-                "api/user/\(targetID)",
+                "v1/user/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
                     try req.content.encode(UserPatchIn(displayName: nil, roles: nil, isActive: false))
@@ -133,7 +133,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .PATCH,
-                "api/user/\(targetID)",
+                "v1/user/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
                     try req.content.encode(UserPatchIn(displayName: nil, roles: [.admin], isActive: nil))
@@ -150,7 +150,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .POST,
-                "api/auth/logout",
+                "v1/auth/logout",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: targetLogin.accessToken)
                 },
@@ -176,7 +176,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .PATCH,
-                "api/user/\(targetID)",
+                "v1/user/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
                     try req.content.encode(UserPatchIn(displayName: nil, roles: nil, isActive: true))
@@ -193,7 +193,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .POST,
-                "api/auth/logout",
+                "v1/auth/logout",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: targetLogin.accessToken)
                 },
@@ -219,7 +219,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .POST,
-                "api/auth/logout",
+                "v1/auth/logout",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: targetLogin.accessToken)
                 },
@@ -232,7 +232,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .PATCH,
-                "api/user/\(targetID)",
+                "v1/user/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
                     try req.content.encode(UserPatchIn(displayName: nil, roles: [], isActive: nil))
@@ -244,7 +244,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .POST,
-                "api/auth/logout",
+                "v1/auth/logout",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: targetLogin2.accessToken)
                 },
@@ -262,7 +262,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .PATCH,
-                "api/user/\(UUID().uuidString)",
+                "v1/user/\(UUID().uuidString)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
                     try req.content.encode(UserPatchIn(displayName: "noop", roles: nil, isActive: nil))
@@ -289,7 +289,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .POST,
-                "api/user/\(targetID)/revokeAccess",
+                "v1/user/\(targetID)/revokeAccess",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
                 },

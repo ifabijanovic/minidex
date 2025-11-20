@@ -32,7 +32,7 @@ struct GameSystemIntegrationTests {
 
             var createdID: UUID?
 
-            try await app.testing().test(.POST, "/api/gamesystem", beforeRequest: { req in
+            try await app.testing().test(.POST, "/v1/gamesystem", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
                 try req.content.encode(GameSystem(id: nil, name: "Warhammer"))
             }, afterResponse: { res async throws in
@@ -47,7 +47,7 @@ struct GameSystemIntegrationTests {
                 return
             }
 
-            try await app.testing().test(.GET, "/api/gamesystem", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/gamesystem", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
@@ -55,14 +55,14 @@ struct GameSystemIntegrationTests {
                 #expect(list.contains(where: { $0.id == id }))
             })
 
-            try await app.testing().test(.PATCH, "/api/gamesystem/\(id)", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/gamesystem/\(id)", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
                 try req.content.encode(["name": "Warhammer 40k"])
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
             })
 
-            try await app.testing().test(.GET, "/api/gamesystem/\(id)", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/gamesystem/\(id)", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
@@ -70,13 +70,13 @@ struct GameSystemIntegrationTests {
                 #expect(dto.name == "Warhammer 40k")
             })
 
-            try await app.testing().test(.DELETE, "/api/gamesystem/\(id)", beforeRequest: { req in
+            try await app.testing().test(.DELETE, "/v1/gamesystem/\(id)", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .noContent)
             })
 
-            try await app.testing().test(.GET, "/api/gamesystem", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/gamesystem", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
                 let list = try res.content.decode([GameSystem].self)
@@ -117,7 +117,7 @@ private struct LoginResponse: Content {
 
 private func loginCataloguer(app: Application, username: String, password: String) async throws -> LoginResponse {
     var response: LoginResponse?
-    try await app.testing().test(.POST, "/api/auth/login", beforeRequest: { req in
+    try await app.testing().test(.POST, "/v1/auth/login", beforeRequest: { req in
         req.headers.basicAuthorization = .init(username: username, password: password)
     }, afterResponse: { res async throws in
         #expect(res.status == .ok)
