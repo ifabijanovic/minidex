@@ -12,6 +12,11 @@ public struct User: Content {
     public var isActive: Bool
 }
 
+public struct UserPostIn: Content {
+    public var roles: Roles
+    public var isActive: Bool
+}
+
 struct UserPatchIn: Content {
     public var roles: Roles?
     public var isActive: Bool?
@@ -20,10 +25,9 @@ struct UserPatchIn: Content {
 public struct UserController: RouteCollection, Sendable {
     public init() {}
 
-    let crud: ApiCrudController<DBUser, User, UserPatchIn> = .init(
-        toDTO: { try .init(db: $0) },
-        toModel: { .init(id: $0.id, roles: $0.roles.rawValue, isActive: $0.isActive) }
-    )
+    let crud: ApiCrudController<DBUser, User, UserPostIn, UserPatchIn> = .init {
+        try .init(db: $0)
+    }
 
     public func boot(routes: any RoutesBuilder) throws {
         let root = routes
@@ -33,7 +37,9 @@ public struct UserController: RouteCollection, Sendable {
             .grouped(RequireAdminMiddleware())
 
         root.get(use: crud.index)
-        root.post(use: crud.create)
+        root.post(use: crud.create { dto, _ in
+            .init(roles: dto.roles.rawValue, isActive: dto.isActive)
+        })
         root.group(":id") { route in
             route.get(use: crud.get)
             route.patch(use: self.update)

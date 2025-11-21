@@ -22,7 +22,7 @@ struct GameSystemIntegrationTests {
 
             try await app.testing().test(.POST, "/v1/gamesystem", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
-                try req.content.encode(GameSystem(id: nil, name: "Warhammer"))
+                try req.content.encode(GameSystemPostIn(name: "Warhammer"))
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
                 let dto = try res.content.decode(GameSystem.self)

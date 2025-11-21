@@ -10,20 +10,20 @@ struct Mini: Content {
     var gameSystemID: UUID
 }
 
+struct MiniPostIn: Content {
+    var name: String
+    var gameSystemID: UUID
+}
+
 struct MiniPatchIn: Content {
     var name: String?
     var gameSystemID: UUID?
 }
 
 struct MiniController: RouteCollection {
-    let crud: ApiCrudController<DBMini, Mini, MiniPatchIn> = .init(
-        toDTO: {
-            .init(id: $0.id, name: $0.name, gameSystemID: $0.$gameSystem.id)
-        },
-        toModel: {
-            .init(id: $0.id, name: $0.name, gameSystemID: $0.gameSystemID)
-        }
-    )
+    let crud: ApiCrudController<DBMini, Mini, MiniPostIn, MiniPatchIn> = .init {
+        .init(id: $0.id, name: $0.name, gameSystemID: $0.$gameSystem.id)
+    }
 
     func boot(routes: any RoutesBuilder) throws {
         let root = routes
@@ -33,7 +33,9 @@ struct MiniController: RouteCollection {
             .grouped(RequireAnyRolesMiddleware(roles: [.admin, .cataloguer]))
 
         root.get(use: crud.index)
-        root.post(use: crud.create)
+        root.post(use: crud.create { dto, _ in
+            .init(name: dto.name, gameSystemID: dto.gameSystemID)
+        })
         root.group(":id") { route in
             route.get(use: crud.get)
             route.patch(use: crud.update { dbModel, patch in

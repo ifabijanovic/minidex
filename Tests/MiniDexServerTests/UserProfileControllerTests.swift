@@ -1,3 +1,4 @@
+import Fluent
 import MiniDexDB
 @testable import MiniDexServer
 import Foundation
@@ -11,7 +12,7 @@ struct UserProfileControllerTests {
     func getBeforeProfileCreation() async throws {
         try await AuthenticatedTestContext.run(
             migrations: MiniDexDB.migrations,
-            roles: .hobbyist,
+            roles: .admin,
         ) { context in
             try context.app.register(collection: UserProfileController())
 
@@ -27,7 +28,7 @@ struct UserProfileControllerTests {
     func profileLifecycle() async throws {
         try await AuthenticatedTestContext.run(
             migrations: MiniDexDB.migrations,
-            roles: .hobbyist,
+            roles: .admin,
         ) { context in
             let app = context.app
             let token = context.token
@@ -40,9 +41,7 @@ struct UserProfileControllerTests {
 
             try await app.testing().test(.POST, "/v1/users/\(userID)/profile", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
-                try req.content.encode(UserProfile(
-                    id: nil,
-                    userID: userID,
+                try req.content.encode(UserProfilePostIn(
                     displayName: "Cataloguer",
                     avatarURL: initialAvatar
                 ))
@@ -91,5 +90,43 @@ struct UserProfileControllerTests {
                 #expect(res.status == .notFound)
             })
         }
+    }
+
+    @Test("user can fetch another user's profile")
+    func userCanAccessAnotherUsersProfile() async throws {
+        try await AuthenticatedTestContext.run(
+            migrations: MiniDexDB.migrations,
+            username: "ash",
+            roles: .hobbyist
+        ) { context in
+            let app = context.app
+            try app.register(collection: UserProfileController())
+
+            let targetUser = try await AuthenticatedTestContext.createUser(
+                on: app.db,
+                username: "misty",
+                roles: .hobbyist
+            )
+            let targetUserID = try targetUser.requireID()
+            try await seedProfile(on: app, userID: targetUserID, displayName: "Misty")
+
+            try await app.testing().test(.GET, "/v1/users/\(targetUserID)/profile", beforeRequest: { req in
+                req.headers.bearerAuthorization = .init(token: context.token)
+            }, afterResponse: { res async throws in
+                #expect(res.status == .ok)
+                let fetched = try res.content.decode(UserProfile.self)
+                #expect(fetched.userID == targetUserID)
+                #expect(fetched.displayName == "Misty")
+            })
+        }
+    }
+
+    private func seedProfile(on app: Application, userID: UUID, displayName: String) async throws {
+        let profile = DBUserProfile(
+            userID: userID,
+            displayName: displayName,
+            avatarURL: nil
+        )
+        try await profile.save(on: app.db)
     }
 }

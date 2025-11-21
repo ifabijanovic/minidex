@@ -1,16 +1,21 @@
 import Fluent
+import FluentPostgresDriver
 import Vapor
 
-public struct ApiCrudController<DBModel, DTO, PatchDTO>: Sendable
+#if DEBUG
+import FluentSQLiteDriver
+#endif
+
+public struct ApiCrudController<DBModel, DTO, PostDTO, PatchDTO>: Sendable
 where
     DBModel: Model,
     DBModel.IDValue == UUID,
     DTO: Content,
+    PostDTO: Content,
     PatchDTO: Content
 {
     let fetchQuery: FetchQuery
     let toDTO: @Sendable (DBModel) throws -> DTO
-    let toModel: @Sendable (DTO) throws -> DBModel
 
     public enum FetchQuery: Sendable {
         case primaryKey
@@ -20,11 +25,9 @@ where
     public init(
         fetchBy: FetchQuery = .primaryKey,
         toDTO: @Sendable @escaping (DBModel) throws -> DTO,
-        toModel: @Sendable @escaping (DTO) throws -> DBModel,
     ) {
         self.fetchQuery = fetchBy
         self.toDTO = toDTO
-        self.toModel = toModel
     }
 
     @Sendable
@@ -41,16 +44,34 @@ where
     }
 
     @Sendable
-    public func create(req: Request) async throws -> DTO {
-        let input = try req.content.decode(DTO.self)
-        let dbModel = try toModel(input)
-        try await dbModel.save(on: req.db)
-        return try toDTO(dbModel)
+    public func create(
+        makeModel: @Sendable @escaping (PostDTO, Request) throws -> DBModel,
+    )  -> @Sendable (Request) async throws -> DTO {
+        return { req in
+            let input = try req.content.decode(PostDTO.self)
+            let dbModel = try makeModel(input, req)
+#if DEBUG
+            do {
+                try await dbModel.save(on: req.db)
+            } catch let error as PostgresError where error.code == .uniqueViolation {
+                throw Abort(.conflict)
+            } catch let error as SQLiteError where error.reason == .constraintUniqueFailed {
+                throw Abort(.conflict)
+            }
+#else
+            do {
+                try await dbModel.save(on: req.db)
+            } catch let error as PostgresError where error.code == .uniqueViolation {
+                throw Abort(.conflict)
+            }
+#endif
+            return try toDTO(dbModel)
+        }
     }
 
     @Sendable
     public func update(
-        mutate: @Sendable @escaping (DBModel, PatchDTO) -> Void
+        mutate: @Sendable @escaping (DBModel, PatchDTO) -> Void,
     ) -> @Sendable (Request) async throws -> DTO {
         return { req in
             let dbModel = try await findById(req: req)
