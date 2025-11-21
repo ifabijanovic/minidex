@@ -1,34 +1,15 @@
 @testable import MiniDexServer
-import AuthAPI
-import AuthDB
-import Fluent
-import FluentSQLiteDriver
-import MiniDexDB
-import Vapor
-import VaporRedisUtils
-import VaporUtils
-import VaporTesting
+import Foundation
 import Testing
+import VaporTesting
 
 @Suite("GameSystem Integration", .serialized)
 struct GameSystemIntegrationTests {
     @Test("cataloguer can CRUD game systems via API")
     func cataloguerCRUD() async throws {
-        let app = try await Application.makeTesting()
-        let redisDriver = InMemoryRedisDriver()
-        do {
-            app.useRedisClientOverride { request in
-                redisDriver.makeClient(on: request.eventLoop)
-            }
-            app.databases.use(.sqlite(.memory), as: .sqlite)
-            app.migrations.add(AuthDB.migrations)
-            app.migrations.add(MiniDexDB.migrations)
-            try await app.autoMigrate()
-            try routes(app)
-
-            let cataloguer = try await createCataloguer(on: app.db)
-            let login = try await loginCataloguer(app: app, username: cataloguer.username, password: cataloguer.password)
-            let token = login.accessToken
+        try await TestContext.withAuthenticatedContext(roles: .cataloguer) { context in
+            let app = context.app
+            let token = context.token
 
             var createdID: UUID?
 
@@ -82,50 +63,6 @@ struct GameSystemIntegrationTests {
                 let list = try res.content.decode([GameSystem].self)
                 #expect(list.contains(where: { $0.id == id }) == false)
             })
-
-            app.clearRedisClientOverride()
-            try await app.autoRevert()
-            try await app.asyncShutdown()
-        } catch {
-            app.clearRedisClientOverride()
-            try? await app.autoRevert()
-            try? await app.asyncShutdown()
-            throw error
         }
     }
-}
-
-private func createCataloguer(on db: any Database) async throws -> (username: String, password: String) {
-    let user = DBUser(displayName: "Cataloguer", roles: Roles.cataloguer.rawValue, isActive: true)
-    try await user.save(on: db)
-    let username = "cataloguer"
-    let password = "Password!23"
-    let credential = DBCredential(
-        userID: try user.requireID(),
-        type: .usernameAndPassword,
-        identifier: username,
-        secret: try Bcrypt.hash(password)
-    )
-    try await credential.save(on: db)
-    return (username, password)
-}
-
-private struct LoginResponse: Content {
-    let accessToken: String
-    let userId: UUID
-}
-
-private func loginCataloguer(app: Application, username: String, password: String) async throws -> LoginResponse {
-    var response: LoginResponse?
-    try await app.testing().test(.POST, "/v1/auth/login", beforeRequest: { req in
-        req.headers.basicAuthorization = .init(username: username, password: password)
-    }, afterResponse: { res async throws in
-        #expect(res.status == .ok)
-        response = try res.content.decode(LoginResponse.self)
-    })
-    guard let login = response else {
-        Issue.record("Missing login response")
-        throw Abort(.internalServerError)
-    }
-    return login
 }

@@ -42,6 +42,7 @@ struct UserProfileController: RouteCollection {
             .grouped("v1", "users")
             .group(":id") { route in
                 let root = route
+                    .grouped("profile")
                     .grouped(TokenAuthenticator())
                     .grouped(AuthUser.guardMiddleware())
 

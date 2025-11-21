@@ -116,7 +116,11 @@ let package = Package(
             name: "MiniDexServerTests",
             dependencies: [
                 .target(name: "MiniDexServer"),
+                .target(name: "AuthAPI"),
+                .target(name: "AuthDB"),
+                .target(name: "MiniDexDB"),
                 .target(name: "VaporRedisUtils"),
+                .target(name: "VaporUtils"),
                 .product(name: "VaporTesting", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
             ],
