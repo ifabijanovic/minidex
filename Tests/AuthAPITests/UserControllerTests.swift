@@ -9,8 +9,8 @@ import VaporRedisUtils
 
 @Suite("UserController", .serialized)
 struct UserControllerTests {
-    @Test("patch display name does not revoke tokens")
-    func patchDisplayNameDoesNotRevokeTokens() async throws {
+    @Test("patching nothing does not revoke tokens")
+    func patchingNothingDoesNotRevokeTokens() async throws {
         try await AuthAPITestApp.withApp { app, redis in
             let (_, adminToken) = try await makeAdmin(app: app)
             let target = try await AuthAPITestHelpers.createUser(
@@ -27,12 +27,10 @@ struct UserControllerTests {
                 "v1/users/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
-                    try req.content.encode(UserPatchIn(displayName: "Updated", roles: nil, isActive: nil))
+                    try req.content.encode(UserPatchIn())
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
-                    let response = try res.content.decode(User.self)
-                    #expect(response.displayName == "Updated")
                 }
             )
 
@@ -64,7 +62,7 @@ struct UserControllerTests {
                 "v1/users/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
-                    try req.content.encode(UserPatchIn(displayName: nil, roles: [], isActive: nil))
+                    try req.content.encode(UserPatchIn(roles: [], isActive: nil))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
@@ -100,7 +98,7 @@ struct UserControllerTests {
                 "v1/users/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
-                    try req.content.encode(UserPatchIn(displayName: nil, roles: nil, isActive: false))
+                    try req.content.encode(UserPatchIn(roles: nil, isActive: false))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
@@ -136,7 +134,7 @@ struct UserControllerTests {
                 "v1/users/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
-                    try req.content.encode(UserPatchIn(displayName: nil, roles: [.admin], isActive: nil))
+                    try req.content.encode(UserPatchIn(roles: [.admin], isActive: nil))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
@@ -179,7 +177,7 @@ struct UserControllerTests {
                 "v1/users/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
-                    try req.content.encode(UserPatchIn(displayName: nil, roles: nil, isActive: true))
+                    try req.content.encode(UserPatchIn(roles: nil, isActive: true))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
@@ -235,7 +233,7 @@ struct UserControllerTests {
                 "v1/users/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
-                    try req.content.encode(UserPatchIn(displayName: nil, roles: [], isActive: nil))
+                    try req.content.encode(UserPatchIn(roles: [], isActive: nil))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
@@ -265,7 +263,7 @@ struct UserControllerTests {
                 "v1/users/\(UUID().uuidString)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
-                    try req.content.encode(UserPatchIn(displayName: "noop", roles: nil, isActive: nil))
+                    try req.content.encode(UserPatchIn())
                 },
                 afterResponse: { res async in
                     #expect(res.status == .notFound)

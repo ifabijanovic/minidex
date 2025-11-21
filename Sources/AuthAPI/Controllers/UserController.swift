@@ -7,7 +7,6 @@ import VaporRedisUtils
 import VaporUtils
 
 struct UserPatchIn: Content {
-    public var displayName: String?
     public var roles: Roles?
     public var isActive: Bool?
 }
@@ -17,14 +16,7 @@ public struct UserController: RouteCollection, Sendable {
 
     let crud: ApiCrudController<DBUser, User, UserPatchIn> = .init(
         toDTO: { try .init(db: $0) },
-        toModel: {
-            .init(
-                id: $0.id,
-                displayName: $0.displayName,
-                roles: $0.roles.rawValue,
-                isActive: $0.isActive,
-            )
-        }
+        toModel: { .init(id: $0.id, roles: $0.roles.rawValue, isActive: $0.isActive) }
     )
 
     public func boot(routes: any RoutesBuilder) throws {
@@ -52,7 +44,6 @@ public struct UserController: RouteCollection, Sendable {
         let patch = try req.content.decode(UserPatchIn.self)
 
         var userAccessChanged = false
-        if let value = patch.displayName { dbModel.displayName = value }
         if let value = patch.roles {
             userAccessChanged = dbModel.roles != value.rawValue
             dbModel.roles = value.rawValue
@@ -100,7 +91,6 @@ public struct UserController: RouteCollection, Sendable {
 extension User {
     init(db: DBUser) throws {
         self.id = try db.requireID()
-        self.displayName = db.displayName
         self.roles = .init(rawValue: db.roles)
         self.isActive = db.isActive
     }

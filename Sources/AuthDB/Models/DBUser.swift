@@ -7,9 +7,6 @@ public final class DBUser: Model, @unchecked Sendable {
     @ID
     public var id: UUID?
 
-    @OptionalField(key: "display_name")
-    public var displayName: String?
-
     @Field(key: "roles")
     public var roles: UInt
 
@@ -29,12 +26,10 @@ public final class DBUser: Model, @unchecked Sendable {
 
     public init(
         id: UUID? = nil,
-        displayName: String? = nil,
         roles: UInt = 0,
         isActive: Bool = false,
     ) {
         self.id = id
-        self.displayName = displayName
         self.roles = roles
         self.isActive = isActive
     }
@@ -42,6 +37,8 @@ public final class DBUser: Model, @unchecked Sendable {
 
 extension DBUser: CustomStringConvertible {
     public var description: String {
-        displayName ?? "N/A"
+        id.map {
+            "\($0.uuidString), \(roles), \(isActive)"
+        } ?? "\(roles), \(isActive)"
     }
 }

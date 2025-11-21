@@ -23,9 +23,8 @@ enum AuthAPITestHelpers {
         password: String = "Password!23",
         roles: Roles,
         isActive: Bool = true,
-        displayName: String? = nil
     ) async throws -> DBUser {
-        let user = DBUser(displayName: displayName, roles: roles.rawValue, isActive: isActive)
+        let user = DBUser(roles: roles.rawValue, isActive: isActive)
         try await user.save(on: db)
 
         let credential = DBCredential(

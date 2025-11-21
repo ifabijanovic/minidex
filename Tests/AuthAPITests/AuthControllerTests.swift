@@ -17,7 +17,6 @@ struct AuthControllerTests {
                 username: "ash",
                 password: "pikachu",
                 roles: [.admin],
-                displayName: "Ash"
             )
             let userID = try user.requireID()
 

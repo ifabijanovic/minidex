@@ -6,7 +6,6 @@ struct Migration_0001_CreateUserAndCredential: AsyncMigration {
         try await database
             .schema("users")
             .id()
-            .field("display_name", .string)
             .field("roles", .uint, .required)
             .field("is_active", .bool, .required)
             .field("created_at", .datetime, .required)

@@ -25,7 +25,6 @@ struct Migration_CreateAdminUser: AsyncMigration {
 
         try await database.transaction { db in
             let user = DBUser(
-                displayName: "MiniDex Admin",
                 roles: Roles.admin.rawValue,
                 isActive: true,
             )
@@ -43,7 +42,6 @@ struct Migration_CreateAdminUser: AsyncMigration {
         // Audit logging
         logger.info("Admin user created", metadata: [
             "username": .string(username),
-            "displayName": .string("MiniDex Admin"),
             "roles": .stringConvertible(Roles.admin.rawValue)
         ])
     }

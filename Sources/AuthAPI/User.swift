@@ -21,7 +21,6 @@ public struct AuthUser: Content, Authenticatable {
 /// Full user model
 public struct User: Content {
     public var id: UUID
-    public var displayName: String?
     public var roles: Roles
     public var isActive: Bool
 }
