@@ -10,13 +10,13 @@ struct Mini: Content {
     var gameSystemID: UUID
 }
 
-struct MiniPatch: Content {
+struct MiniPatchIn: Content {
     var name: String?
     var gameSystemID: UUID?
 }
 
 struct MiniController: RouteCollection {
-    let crud: ApiCrudController<DBMini, Mini, MiniPatch> = .init(
+    let crud: ApiCrudController<DBMini, Mini, MiniPatchIn> = .init(
         toDTO: {
             .init(id: $0.id, name: $0.name, gameSystemID: $0.$gameSystem.id)
         },

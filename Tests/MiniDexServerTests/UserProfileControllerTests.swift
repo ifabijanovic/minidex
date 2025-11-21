@@ -61,7 +61,7 @@ struct UserProfileControllerTests {
 
             try await app.testing().test(.PATCH, "/v1/users/\(userID)/profile", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
-                try req.content.encode(UserProfilePatch(
+                try req.content.encode(UserProfilePatchIn(
                     displayName: "Updated Cataloguer",
                     avatarURL: updatedAvatar
                 ))

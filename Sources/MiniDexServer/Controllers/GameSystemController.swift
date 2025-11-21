@@ -9,12 +9,12 @@ struct GameSystem: Content {
     var name: String
 }
 
-struct GameSystemPatch: Content {
+struct GameSystemPatchIn: Content {
     var name: String?
 }
 
 struct GameSystemController: RouteCollection {
-    let crud: ApiCrudController<DBGameSystem, GameSystem, GameSystemPatch> = .init(
+    let crud: ApiCrudController<DBGameSystem, GameSystem, GameSystemPatchIn> = .init(
         toDTO: {
             .init(id: $0.id, name: $0.name)
         },

@@ -6,6 +6,12 @@ import Vapor
 import VaporRedisUtils
 import VaporUtils
 
+public struct User: Content {
+    public var id: UUID
+    public var roles: Roles
+    public var isActive: Bool
+}
+
 struct UserPatchIn: Content {
     public var roles: Roles?
     public var isActive: Bool?

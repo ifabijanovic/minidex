@@ -10,17 +10,9 @@ public struct Roles: OptionSet, Codable, Sendable {
     }
 }
 
-/// Minimal set of user properties required for authentication
 public struct AuthUser: Content, Authenticatable {
     public var id: UUID
     public var roles: Roles
     public var isActive: Bool
     public var tokenID: UUID?
-}
-
-/// Full user model
-public struct User: Content {
-    public var id: UUID
-    public var roles: Roles
-    public var isActive: Bool
 }

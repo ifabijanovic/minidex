@@ -11,13 +11,13 @@ struct UserProfile: Content {
     var avatarURL: URL?
 }
 
-struct UserProfilePatch: Content {
+struct UserProfilePatchIn: Content {
     var displayName: String?
     var avatarURL: URL?
 }
 
 struct UserProfileController: RouteCollection {
-    let crud: ApiCrudController<DBUserProfile, UserProfile, UserProfilePatch> = .init(
+    let crud: ApiCrudController<DBUserProfile, UserProfile, UserProfilePatchIn> = .init(
         fetchBy: .oneToOneKey(\.$user.$id),
         toDTO: {
             .init(
