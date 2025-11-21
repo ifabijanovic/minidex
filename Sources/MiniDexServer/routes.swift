@@ -8,6 +8,7 @@ func routes(_ app: Application) throws {
         accessTokenExpiration: Settings.Auth.accessTokenExpiration,
     ))
     try app.register(collection: UserController())
+    try app.register(collection: UserProfileController())
     try app.register(collection: MiniController())
     try app.register(collection: GameSystemController())
 }

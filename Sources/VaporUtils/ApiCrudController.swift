@@ -8,13 +8,21 @@ where
     DTO: Content,
     PatchDTO: Content
 {
+    let fetchQuery: FetchQuery
     let toDTO: @Sendable (DBModel) throws -> DTO
     let toModel: @Sendable (DTO) throws -> DBModel
 
+    public enum FetchQuery: Sendable {
+        case primaryKey
+        case oneToOneKey(KeyPath<DBModel, FieldProperty<DBModel, UUID>>)
+    }
+
     public init(
+        fetchBy: FetchQuery = .primaryKey,
         toDTO: @Sendable @escaping (DBModel) throws -> DTO,
         toModel: @Sendable @escaping (DTO) throws -> DBModel,
     ) {
+        self.fetchQuery = fetchBy
         self.toDTO = toDTO
         self.toModel = toModel
     }
@@ -61,9 +69,17 @@ where
     }
 
     private func findById(req: Request) async throws -> DBModel {
-        if let dbModel = try await DBModel.find(req.parameters.require("id"), on: req.db) {
-            return dbModel
+        let dbModel: DBModel?
+        switch fetchQuery {
+        case .primaryKey:
+            dbModel = try await DBModel.find(req.parameters.require("id"), on: req.db)
+        case .oneToOneKey(let path):
+            dbModel = try await DBModel
+                .query(on: req.db)
+                .filter(path == req.parameters.require("id"))
+                .first()
         }
-        throw Abort(.notFound)
+        guard let dbModel else { throw Abort(.notFound) }
+        return dbModel
     }
 }
