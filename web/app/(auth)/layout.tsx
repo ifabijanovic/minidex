@@ -8,9 +8,7 @@ import {
   Divider,
   IconButton,
   List,
-  ListItemButton,
   ListItemIcon,
-  ListItemText,
   Menu,
   MenuItem,
   Typography,
@@ -19,6 +17,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import LogoutButton from "@/app/(auth)/components/LogoutButton";
+import { MainNavItem } from "@/app/(auth)/components/MainNavItem";
 import { useCurrentUser } from "@/app/(auth)/hooks/use-current-user";
 
 const placeholderUser = {
@@ -28,11 +27,12 @@ const placeholderUser = {
   isActive: true,
 };
 
-export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
-  const {
-    data: user = placeholderUser,
-    error,
-  } = useCurrentUser({
+export default function AuthenticatedLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { data: user = placeholderUser, error } = useCurrentUser({
     enabled: false,
     placeholderData: placeholderUser,
   });
@@ -40,7 +40,10 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(menuAnchor);
 
-  const initials = useMemo(() => getInitials(user.displayName), [user.displayName]);
+  const initials = useMemo(
+    () => getInitials(user.displayName),
+    [user.displayName],
+  );
 
   function handleAvatarClick(event: React.MouseEvent<HTMLElement>) {
     setMenuAnchor(event.currentTarget);
@@ -51,7 +54,13 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
   }
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
+    <Box
+      sx={{
+        display: "flex",
+        minHeight: "100vh",
+        bgcolor: "background.default",
+      }}
+    >
       <Box
         component="aside"
         sx={{
@@ -75,12 +84,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
         </Box>
 
         <List sx={{ flexGrow: 1, p: 0 }}>
-          <ListItemButton component={Link} href="/dashboard" sx={{ borderRadius: 1 }}>
-            <ListItemIcon>
-              <HomeOutlined fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Home" />
-          </ListItemButton>
+          <MainNavItem label="Home" href="/home" icon={HomeOutlined} exact />
         </List>
 
         <Typography variant="caption" color="text.secondary">
@@ -102,7 +106,10 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
           }}
         >
           <IconButton onClick={handleAvatarClick}>
-            <Avatar src="/images/avatar-placeholder.png" alt={user.displayName ?? "User avatar"}>
+            <Avatar
+              src="/images/avatar-placeholder.png"
+              alt={user.displayName ?? "User avatar"}
+            >
               {initials}
             </Avatar>
           </IconButton>
@@ -120,7 +127,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
             <Divider />
             <MenuItem
               component={Link}
-              href="/dashboard"
+              href="/home"
               onClick={handleMenuClose}
               sx={{ px: 1, mx: 1, mt: 1, borderRadius: 1 }}
             >
@@ -146,8 +153,19 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
                 px: 1,
                 mx: 1,
                 mt: 1,
+                borderRadius: 1,
                 "&:hover": {
-                  backgroundColor: "transparent",
+                  backgroundColor: "rgba(231, 76, 60, 0.08)",
+                },
+                "& .MuiButton-root": {
+                  width: "100%",
+                  justifyContent: "flex-start",
+                  fontWeight: 700,
+                  color: "error.main",
+                  py: 0.5,
+                  "&:hover": {
+                    backgroundColor: "transparent",
+                  },
                 },
               }}
             >
@@ -156,10 +174,6 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
                 fullWidth
                 color="error"
                 onLoggedOut={handleMenuClose}
-                sx={{
-                  fontWeight: 700,
-                  borderRadius: 1,
-                }}
               >
                 Logout
               </LogoutButton>

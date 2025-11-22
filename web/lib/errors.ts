@@ -5,7 +5,10 @@ type FriendlyErrorOptions = {
   genericMessage?: string;
 };
 
-export function getFriendlyErrorMessage(error: unknown, options: FriendlyErrorOptions = {}) {
+export function getFriendlyErrorMessage(
+  error: unknown,
+  options: FriendlyErrorOptions = {},
+) {
   const generic = options.genericMessage ?? errorMessages.generic;
 
   if (error instanceof ApiError) {
@@ -24,4 +27,3 @@ export function getFriendlyErrorMessage(error: unknown, options: FriendlyErrorOp
 
   return generic;
 }
-

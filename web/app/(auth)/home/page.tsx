@@ -9,7 +9,7 @@ const placeholderUser = {
   roleTitle: "Pokémon Master",
 };
 
-export default function DashboardPage() {
+export default function HomePage() {
   return (
     <Stack spacing={3}>
       <Card>
@@ -18,7 +18,8 @@ export default function DashboardPage() {
             Account Overview
           </Typography>
           <Typography variant="body2" color="text.secondary" mb={3}>
-            This section will summarize engagement details once the API integration is complete.
+            This section will summarize engagement details once the API
+            integration is complete.
           </Typography>
           <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
             <UserInfoItem label="Name" value={placeholderUser.displayName} />
@@ -50,7 +51,13 @@ export default function DashboardPage() {
   );
 }
 
-function UserInfoItem({ label, value }: { label: string; value?: string | null }) {
+function UserInfoItem({
+  label,
+  value,
+}: {
+  label: string;
+  value?: string | null;
+}) {
   return (
     <div style={{ minWidth: 200 }}>
       <Typography variant="overline" color="text.secondary">

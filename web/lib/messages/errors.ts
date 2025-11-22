@@ -3,4 +3,3 @@ export const errorMessages = {
   server: "Our servers are having trouble right now. Please try again shortly.",
   sessionExpired: "Your session has expired. Please login again.",
 };
-

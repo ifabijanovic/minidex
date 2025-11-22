@@ -1,11 +1,19 @@
 "use client";
 
-import { useMutation, UseMutationOptions, UseMutationResult } from "@tanstack/react-query";
+import {
+  useMutation,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
 import { enqueueSnackbar } from "notistack";
 
 import { getFriendlyErrorMessage } from "@/lib/errors";
 
-type UseApiMutationOptions<TData, TVariables> = UseMutationOptions<TData, Error, TVariables> & {
+type UseApiMutationOptions<TData, TVariables> = UseMutationOptions<
+  TData,
+  Error,
+  TVariables
+> & {
   suppressToast?: boolean;
   genericErrorMessage?: string;
 };
@@ -19,9 +27,14 @@ export function useApiMutation<TData = unknown, TVariables = void>(
     ...rest,
     onError: (error, variables, context) => {
       if (!suppressToast) {
-        enqueueSnackbar(getFriendlyErrorMessage(error, { genericMessage: genericErrorMessage }), {
-          variant: "error",
-        });
+        enqueueSnackbar(
+          getFriendlyErrorMessage(error, {
+            genericMessage: genericErrorMessage,
+          }),
+          {
+            variant: "error",
+          },
+        );
       }
       onError?.(error, variables, context, undefined as any);
     },

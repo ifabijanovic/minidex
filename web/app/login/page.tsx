@@ -125,9 +125,18 @@ function LoginForm() {
           />
 
           <Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+            >
               <Box />
-              <MuiLink component={Link} href="/forgot-password" underline="hover">
+              <MuiLink
+                component={Link}
+                href="/forgot-password"
+                underline="hover"
+              >
                 {m.forgotPassword}
               </MuiLink>
             </Box>
@@ -143,7 +152,10 @@ function LoginForm() {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword((prev) => !prev)} edge="end">
+                    <IconButton
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      edge="end"
+                    >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
@@ -168,7 +180,7 @@ function LoginForm() {
 
 function normalizeReturnUrl(value: string | null) {
   if (!value || value === "/login") {
-    return "/dashboard";
+    return "/home";
   }
   return value;
 }
