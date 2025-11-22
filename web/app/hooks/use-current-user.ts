@@ -18,6 +18,17 @@ const currentUserQuery = apiQueryOptions<CurrentUser>({
   request: { cache: "no-store" },
 });
 
-export function useCurrentUser() {
-  return useQuery(currentUserQuery);
+type UseCurrentUserOptions = {
+  enabled?: boolean;
+  placeholderData?: CurrentUser;
+};
+
+export function useCurrentUser(options?: UseCurrentUserOptions) {
+  const { enabled = true, placeholderData } = options ?? {};
+
+  return useQuery<CurrentUser>({
+    ...currentUserQuery,
+    enabled,
+    initialData: placeholderData,
+  });
 }

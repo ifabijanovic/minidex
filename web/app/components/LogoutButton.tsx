@@ -16,10 +16,12 @@ import { queryKeys } from "@/lib/query-keys";
 
 type LogoutButtonProps = ButtonProps & {
   redirectTo?: string;
+  onLoggedOut?: () => void;
 };
 
 export function LogoutButton({
   redirectTo = "/login",
+  onLoggedOut,
   children,
   ...buttonProps
 }: LogoutButtonProps) {
@@ -33,6 +35,7 @@ export function LogoutButton({
       await queryClient.invalidateQueries({ queryKey: queryKeys.currentUser });
       router.replace(redirectTo);
       router.refresh();
+      onLoggedOut?.();
     },
     onError: (err) => {
       setError(err instanceof Error ? err.message : "Failed to logout");
