@@ -10,6 +10,10 @@ import VaporRedisUtils
 
 @Suite("UserController", .serialized)
 struct UserControllerTests {
+    typealias DTO = UserController.DTO
+    typealias PostDTO = UserController.PostDTO
+    typealias PatchDTO = UserController.PatchDTO
+
     @Test("patching nothing does not revoke tokens")
     func patchingNothingDoesNotRevokeTokens() async throws {
         try await AuthAPITestApp.withApp { app, redis in
@@ -32,7 +36,7 @@ struct UserControllerTests {
                 "v1/users/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
-                    try req.content.encode(UserPatchIn())
+                    try req.content.encode(PatchDTO())
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
@@ -71,11 +75,11 @@ struct UserControllerTests {
                 "v1/users/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
-                    try req.content.encode(UserPatchIn(roles: [], isActive: nil))
+                    try req.content.encode(PatchDTO(roles: [], isActive: nil))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
-                    let response = try res.content.decode(User.self)
+                    let response = try res.content.decode(DTO.self)
                     #expect(response.roles.isEmpty)
                 }
             )
@@ -111,11 +115,11 @@ struct UserControllerTests {
                 "v1/users/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
-                    try req.content.encode(UserPatchIn(roles: nil, isActive: false))
+                    try req.content.encode(PatchDTO(roles: nil, isActive: false))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
-                    let response = try res.content.decode(User.self)
+                    let response = try res.content.decode(DTO.self)
                     #expect(response.isActive == false)
                 }
             )
@@ -151,7 +155,7 @@ struct UserControllerTests {
                 "v1/users/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
-                    try req.content.encode(UserPatchIn(roles: [.admin], isActive: nil))
+                    try req.content.encode(PatchDTO(roles: .admin, isActive: nil))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
@@ -198,7 +202,7 @@ struct UserControllerTests {
                 "v1/users/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
-                    try req.content.encode(UserPatchIn(roles: nil, isActive: true))
+                    try req.content.encode(PatchDTO(roles: nil, isActive: true))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
@@ -258,7 +262,7 @@ struct UserControllerTests {
                 "v1/users/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
-                    try req.content.encode(UserPatchIn(roles: [], isActive: nil))
+                    try req.content.encode(PatchDTO(roles: [], isActive: nil))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
@@ -288,7 +292,7 @@ struct UserControllerTests {
                 "v1/users/\(UUID().uuidString)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
-                    try req.content.encode(UserPatchIn())
+                    try req.content.encode(PatchDTO())
                 },
                 afterResponse: { res async in
                     #expect(res.status == .notFound)

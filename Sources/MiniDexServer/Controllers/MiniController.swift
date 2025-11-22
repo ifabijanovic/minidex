@@ -4,26 +4,32 @@ import MiniDexDB
 import Vapor
 import VaporUtils
 
-struct Mini: Content {
-    var id: UUID?
-    var name: String
-    var gameSystemID: UUID
-}
+struct MiniController: RestCrudController {
+    typealias DBModel = DBMini
 
-struct MiniPatchIn: Content {
-    var name: String?
-    var gameSystemID: UUID?
-}
+    struct DTO: Content {
+        var id: UUID
+        var name: String
+        var gameSystemID: UUID
+    }
 
-struct MiniController: RouteCollection {
-    let crud: ApiCrudController<DBMini, Mini, MiniPatchIn> = .init(
-        toDTO: {
-            .init(id: $0.id, name: $0.name, gameSystemID: $0.$gameSystem.id)
-        },
-        toModel: {
-            .init(id: $0.id, name: $0.name, gameSystemID: $0.gameSystemID)
-        }
-    )
+    struct PostDTO: Content {
+        var name: String
+        var gameSystemID: UUID
+    }
+
+    struct PatchDTO: Content {
+        var name: String?
+        var gameSystemID: UUID?
+    }
+
+    func toDTO(_ dbModel: DBMini) throws -> DTO {
+        try .init(
+            id: dbModel.requireID(),
+            name: dbModel.name,
+            gameSystemID: dbModel.$gameSystem.id
+        )
+    }
 
     func boot(routes: any RoutesBuilder) throws {
         let root = routes
@@ -32,15 +38,17 @@ struct MiniController: RouteCollection {
             .grouped(AuthUser.guardMiddleware())
             .grouped(RequireAnyRolesMiddleware(roles: [.admin, .cataloguer]))
 
-        root.get(use: crud.index)
-        root.post(use: crud.create)
+        root.get(use: self.index)
+        root.post(use: self.create { dto, _ in
+            .init(name: dto.name, gameSystemID: dto.gameSystemID)
+        })
         root.group(":id") { route in
-            route.get(use: crud.get)
-            route.patch(use: crud.update { dbModel, patch in
+            route.get(use: self.get)
+            route.patch(use: self.update { dbModel, patch in
                 if let value = patch.name { dbModel.name = value }
                 if let value = patch.gameSystemID { dbModel.$gameSystem.id = value }
             })
-            route.delete(use: crud.delete)
+            route.delete(use: self.delete)
         }
     }
 }

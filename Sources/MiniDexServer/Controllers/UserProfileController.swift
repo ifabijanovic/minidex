@@ -4,38 +4,41 @@ import MiniDexDB
 import Vapor
 import VaporUtils
 
-struct UserProfile: Content {
-    var id: UUID?
-    var userID: UUID
-    var displayName: String?
-    var avatarURL: URL?
-}
+struct UserProfileController: RestCrudController {
+    typealias DBModel = DBUserProfile
 
-struct UserProfilePatchIn: Content {
-    var displayName: String?
-    var avatarURL: URL?
-}
+    struct DTO: Content {
+        var id: UUID
+        var userID: UUID
+        var displayName: String?
+        var avatarURL: URL?
+    }
 
-struct UserProfileController: RouteCollection {
-    let crud: ApiCrudController<DBUserProfile, UserProfile, UserProfilePatchIn> = .init(
-        fetchBy: .oneToOneKey(\.$user.$id),
-        toDTO: {
-            .init(
-                id: $0.id,
-                userID: $0.$user.id,
-                displayName: $0.displayName,
-                avatarURL: $0.avatarURL.flatMap(URL.init(string:)),
-            )
-        },
-        toModel: {
-            .init(
-                id: $0.id,
-                userID: $0.userID,
-                displayName: $0.displayName,
-                avatarURL: $0.avatarURL?.absoluteString,
-            )
-        }
-    )
+    struct PostDTO: Content {
+        var displayName: String?
+        var avatarURL: URL?
+    }
+
+    struct PatchDTO: Content {
+        var displayName: String?
+        var avatarURL: URL?
+    }
+
+    func findOne(req: Request) async throws -> DBModel? {
+        try await DBUserProfile
+            .query(on: req.db)
+            .filter(\.$user.$id == req.parameters.require("id"))
+            .first()
+    }
+
+    func toDTO(_ dbModel: DBUserProfile) throws -> DTO {
+        try .init(
+            id: dbModel.requireID(),
+            userID: dbModel.$user.id,
+            displayName: dbModel.displayName,
+            avatarURL: dbModel.avatarURL.flatMap(URL.init(string:)),
+        )
+    }
 
     func boot(routes: any RoutesBuilder) throws {
         routes
@@ -46,9 +49,17 @@ struct UserProfileController: RouteCollection {
                     .grouped(TokenAuthenticator())
                     .grouped(AuthUser.guardMiddleware())
 
-                root.get(use: crud.get)
-                root.post(use: crud.create)
-                root.patch(use: crud.update { dbModel, patch in
+                root.get(use: self.get)
+
+                let adminOnly = root.grouped(RequireAdminMiddleware())
+                adminOnly.post(use: self.create { dto, req in
+                    try .init(
+                        userID: req.parameters.require("id"),
+                        displayName: dto.displayName,
+                        avatarURL: dto.avatarURL?.absoluteString,
+                    )
+                })
+                adminOnly.patch(use: self.update { dbModel, patch in
                     if let value = patch.displayName { dbModel.displayName = value }
                     if let value = patch.avatarURL { dbModel.avatarURL = value.absoluteString }
                 })

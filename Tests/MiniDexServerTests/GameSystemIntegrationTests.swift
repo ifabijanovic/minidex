@@ -7,6 +7,10 @@ import VaporTestingUtils
 
 @Suite("GameSystem Integration", .serialized)
 struct GameSystemIntegrationTests {
+    typealias DTO = GameSystemController.DTO
+    typealias PostDTO = GameSystemController.PostDTO
+    typealias PatchDTO = GameSystemController.PatchDTO
+
     @Test("cataloguer can CRUD game systems via API")
     func cataloguerCRUD() async throws {
         try await AuthenticatedTestContext.run(
@@ -22,10 +26,10 @@ struct GameSystemIntegrationTests {
 
             try await app.testing().test(.POST, "/v1/gamesystem", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
-                try req.content.encode(GameSystem(id: nil, name: "Warhammer"))
+                try req.content.encode(PostDTO(name: "Warhammer"))
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
-                let dto = try res.content.decode(GameSystem.self)
+                let dto = try res.content.decode(DTO.self)
                 createdID = dto.id
                 #expect(dto.name == "Warhammer")
             })
@@ -39,13 +43,13 @@ struct GameSystemIntegrationTests {
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
-                let list = try res.content.decode([GameSystem].self)
+                let list = try res.content.decode([DTO].self)
                 #expect(list.contains(where: { $0.id == id }))
             })
 
             try await app.testing().test(.PATCH, "/v1/gamesystem/\(id)", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
-                try req.content.encode(["name": "Warhammer 40k"])
+                try req.content.encode(PatchDTO(name: "Warhammer 40k"))
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
             })
@@ -54,7 +58,7 @@ struct GameSystemIntegrationTests {
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
-                let dto = try res.content.decode(GameSystem.self)
+                let dto = try res.content.decode(DTO.self)
                 #expect(dto.name == "Warhammer 40k")
             })
 
@@ -67,7 +71,7 @@ struct GameSystemIntegrationTests {
             try await app.testing().test(.GET, "/v1/gamesystem", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
-                let list = try res.content.decode([GameSystem].self)
+                let list = try res.content.decode([DTO].self)
                 #expect(list.contains(where: { $0.id == id }) == false)
             })
         }

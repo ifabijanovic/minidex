@@ -6,24 +6,34 @@ import Vapor
 import VaporRedisUtils
 import VaporUtils
 
-public struct User: Content {
-    public var id: UUID
-    public var roles: Roles
-    public var isActive: Bool
-}
+public struct UserController: RestCrudController {
+    public typealias DBModel = DBUser
 
-struct UserPatchIn: Content {
-    public var roles: Roles?
-    public var isActive: Bool?
-}
+    public struct DTO: Content {
+        public var id: UUID
+        public var roles: Roles
+        public var isActive: Bool
+    }
 
-public struct UserController: RouteCollection, Sendable {
+    public struct PostDTO: Content {
+        public var roles: Roles
+        public var isActive: Bool
+    }
+
+    public struct PatchDTO: Content {
+        public var roles: Roles?
+        public var isActive: Bool?
+    }
+
     public init() {}
 
-    let crud: ApiCrudController<DBUser, User, UserPatchIn> = .init(
-        toDTO: { try .init(db: $0) },
-        toModel: { .init(id: $0.id, roles: $0.roles.rawValue, isActive: $0.isActive) }
-    )
+    public func toDTO(_ dbModel: DBUser) throws -> DTO {
+        try .init(
+            id: dbModel.requireID(),
+            roles: .init(rawValue: dbModel.roles),
+            isActive: dbModel.isActive,
+        )
+    }
 
     public func boot(routes: any RoutesBuilder) throws {
         let root = routes
@@ -32,22 +42,23 @@ public struct UserController: RouteCollection, Sendable {
             .grouped(AuthUser.guardMiddleware())
             .grouped(RequireAdminMiddleware())
 
-        root.get(use: crud.index)
-        root.post(use: crud.create)
+        root.get(use: self.index)
+        root.post(use: self.create { dto, _ in
+            .init(roles: dto.roles.rawValue, isActive: dto.isActive)
+        })
         root.group(":id") { route in
-            route.get(use: crud.get)
+            route.get(use: self.get)
             route.patch(use: self.update)
             route.post("revokeAccess", use: self.revokeAccess)
         }
     }
 
-    @Sendable
-    func update(req: Request) async throws -> User {
+    func update(req: Request) async throws -> DTO {
         let userID = try req.parameters.require("id", as: UUID.self)
         guard let dbModel = try await DBUser.find(userID, on: req.db) else {
             throw Abort(.notFound)
         }
-        let patch = try req.content.decode(UserPatchIn.self)
+        let patch = try req.content.decode(PatchDTO.self)
 
         var userAccessChanged = false
         if let value = patch.roles {
@@ -59,7 +70,7 @@ public struct UserController: RouteCollection, Sendable {
             dbModel.isActive = value
         }
 
-        let updated = try User(db: dbModel)
+        let updated = try toDTO(dbModel)
 
         if userAccessChanged {
             req.logger.debug("User access changed, revoking tokens...")
@@ -80,7 +91,6 @@ public struct UserController: RouteCollection, Sendable {
         return updated
     }
 
-    @Sendable
     func revokeAccess(req: Request) async throws -> HTTPStatus {
         let userID = try req.parameters.require("id", as: UUID.self)
         try await TokenRevocation.revokeAllActiveTokens(
@@ -91,13 +101,5 @@ public struct UserController: RouteCollection, Sendable {
         )
         req.logger.debug("Revoked access for userID: \(userID)")
         return .ok
-    }
-}
-
-extension User {
-    init(db: DBUser) throws {
-        self.id = try db.requireID()
-        self.roles = .init(rawValue: db.roles)
-        self.isActive = db.isActive
     }
 }

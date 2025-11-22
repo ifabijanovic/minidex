@@ -1,3 +1,4 @@
+import Fluent
 import MiniDexDB
 @testable import MiniDexServer
 import Foundation
@@ -7,11 +8,15 @@ import VaporTestingUtils
 
 @Suite("UserProfile Controller", .serialized)
 struct UserProfileControllerTests {
+    typealias DTO = UserProfileController.DTO
+    typealias PostDTO = UserProfileController.PostDTO
+    typealias PatchDTO = UserProfileController.PatchDTO
+
     @Test("returns 404 when profile missing for user id")
     func getBeforeProfileCreation() async throws {
         try await AuthenticatedTestContext.run(
             migrations: MiniDexDB.migrations,
-            roles: .hobbyist,
+            roles: .admin,
         ) { context in
             try context.app.register(collection: UserProfileController())
 
@@ -27,7 +32,7 @@ struct UserProfileControllerTests {
     func profileLifecycle() async throws {
         try await AuthenticatedTestContext.run(
             migrations: MiniDexDB.migrations,
-            roles: .hobbyist,
+            roles: .admin,
         ) { context in
             let app = context.app
             let token = context.token
@@ -35,22 +40,21 @@ struct UserProfileControllerTests {
 
             try app.register(collection: UserProfileController())
 
-            let initialAvatar = URL(string: "https://cdn.minidex.dev/avatars/initial.png")!
+            let initialAvatar = URL(string: "https://cdn.minidex.dev/avatars/iris.png")!
             var createdProfileID: UUID?
 
             try await app.testing().test(.POST, "/v1/users/\(userID)/profile", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
-                try req.content.encode(UserProfile(
-                    id: nil,
-                    userID: userID,
-                    displayName: "Cataloguer",
+                try req.content.encode(PostDTO(
+                    displayName: "Iris",
                     avatarURL: initialAvatar
                 ))
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
-                let created = try res.content.decode(UserProfile.self)
+                let created = try res.content.decode(DTO.self)
                 createdProfileID = created.id
                 #expect(created.userID == userID)
+                #expect(created.displayName == "Iris")
                 #expect(created.avatarURL == initialAvatar)
             })
 
@@ -63,24 +67,24 @@ struct UserProfileControllerTests {
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
-                let fetched = try res.content.decode(UserProfile.self)
+                let fetched = try res.content.decode(DTO.self)
                 #expect(fetched.id == profileID)
                 #expect(fetched.userID == userID)
                 #expect(fetched.avatarURL == initialAvatar)
             })
 
-            let updatedAvatar = URL(string: "https://cdn.minidex.dev/avatars/updated.png")!
+            let updatedAvatar = URL(string: "https://cdn.minidex.dev/avatars/clemont.png")!
 
             try await app.testing().test(.PATCH, "/v1/users/\(userID)/profile", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
-                try req.content.encode(UserProfilePatchIn(
-                    displayName: "Updated Cataloguer",
+                try req.content.encode(PatchDTO(
+                    displayName: "Clemont",
                     avatarURL: updatedAvatar
                 ))
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
-                let updated = try res.content.decode(UserProfile.self)
-                #expect(updated.displayName == "Updated Cataloguer")
+                let updated = try res.content.decode(DTO.self)
+                #expect(updated.displayName == "Clemont")
                 #expect(updated.avatarURL == updatedAvatar)
             })
 
@@ -91,5 +95,90 @@ struct UserProfileControllerTests {
                 #expect(res.status == .notFound)
             })
         }
+    }
+
+    @Test("non-admin can fetch another user's profile")
+    func nonAdminCanAccessAnotherUsersProfile() async throws {
+        try await AuthenticatedTestContext.run(
+            migrations: MiniDexDB.migrations,
+            username: "ash",
+            roles: .hobbyist
+        ) { context in
+            let app = context.app
+            try app.register(collection: UserProfileController())
+
+            let targetUser = try await AuthenticatedTestContext.createUser(
+                on: app.db,
+                username: "misty",
+                roles: .hobbyist
+            )
+            let targetUserID = try targetUser.requireID()
+            try await seedProfile(on: app, userID: targetUserID, displayName: "Misty")
+
+            try await app.testing().test(.GET, "/v1/users/\(targetUserID)/profile", beforeRequest: { req in
+                req.headers.bearerAuthorization = .init(token: context.token)
+            }, afterResponse: { res async throws in
+                #expect(res.status == .ok)
+                let fetched = try res.content.decode(DTO.self)
+                #expect(fetched.userID == targetUserID)
+                #expect(fetched.displayName == "Misty")
+            })
+        }
+    }
+
+    @Test("non-admin cannot create profile via admin route")
+    func nonAdminCannotPostOwnProfile() async throws {
+        try await AuthenticatedTestContext.run(
+            migrations: MiniDexDB.migrations,
+            username: "brock",
+            roles: .hobbyist
+        ) { context in
+            let app = context.app
+            try app.register(collection: UserProfileController())
+
+            try await app.testing().test(.POST, "/v1/users/\(context.userID)/profile", beforeRequest: { req in
+                req.headers.bearerAuthorization = .init(token: context.token)
+                try req.content.encode(PostDTO(
+                    displayName: "Brock",
+                    avatarURL: URL(string: "https://cdn.minidex.dev/avatars/brock.png")
+                ))
+            }, afterResponse: { res async throws in
+                #expect(res.status == .forbidden)
+            })
+        }
+    }
+
+    @Test("non-admin cannot update profile via admin route")
+    func nonAdminCannotPatchOwnProfile() async throws {
+        try await AuthenticatedTestContext.run(
+            migrations: MiniDexDB.migrations,
+            username: "may",
+            roles: .hobbyist
+        ) { context in
+            let app = context.app
+            try app.register(collection: UserProfileController())
+            let userID = context.userID
+
+            try await seedProfile(on: app, userID: userID, displayName: "May")
+
+            try await app.testing().test(.PATCH, "/v1/users/\(userID)/profile", beforeRequest: { req in
+                req.headers.bearerAuthorization = .init(token: context.token)
+                try req.content.encode(PatchDTO(
+                    displayName: "Updated May",
+                    avatarURL: URL(string: "https://cdn.minidex.dev/avatars/may.png")
+                ))
+            }, afterResponse: { res async throws in
+                #expect(res.status == .forbidden)
+            })
+        }
+    }
+
+    private func seedProfile(on app: Application, userID: UUID, displayName: String) async throws {
+        let profile = DBUserProfile(
+            userID: userID,
+            displayName: displayName,
+            avatarURL: nil
+        )
+        try await profile.save(on: app.db)
     }
 }

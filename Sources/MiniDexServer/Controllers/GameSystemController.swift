@@ -4,25 +4,28 @@ import MiniDexDB
 import Vapor
 import VaporUtils
 
-struct GameSystem: Content {
-    var id: UUID?
-    var name: String
-}
+struct GameSystemController: RestCrudController {
+    typealias DBModel = DBGameSystem
 
-struct GameSystemPatchIn: Content {
-    var name: String?
-}
+    struct DTO: Content {
+        var id: UUID
+        var name: String
+    }
 
-struct GameSystemController: RouteCollection {
-    let crud: ApiCrudController<DBGameSystem, GameSystem, GameSystemPatchIn> = .init(
-        toDTO: {
-            .init(id: $0.id, name: $0.name)
-        },
-        toModel: {
-            .init(id: $0.id, name: $0.name)
-        }
-    )
+    struct PostDTO: Content {
+        var name: String
+    }
 
+    struct PatchDTO: Content {
+        var name: String?
+    }
+
+    func toDTO(_ dbModel: DBGameSystem) throws -> DTO {
+        try .init(
+            id: dbModel.requireID(),
+            name: dbModel.name,
+        )
+    }
 
     func boot(routes: any RoutesBuilder) throws {
         let root = routes
@@ -31,14 +34,16 @@ struct GameSystemController: RouteCollection {
             .grouped(AuthUser.guardMiddleware())
             .grouped(RequireAnyRolesMiddleware(roles: [.admin, .cataloguer]))
 
-        root.get(use: crud.index)
-        root.post(use: crud.create)
+        root.get(use: self.index)
+        root.post(use: self.create { dto, _ in
+            .init(name: dto.name)
+        })
         root.group(":id") { route in
-            route.get(use: crud.get)
-            route.patch(use: crud.update { dbModel, patch in
+            route.get(use: self.get)
+            route.patch(use: self.update { dbModel, patch in
                 if let value = patch.name { dbModel.name = value }
             })
-            route.delete(use: crud.delete)
+            route.delete(use: self.delete)
         }
     }
 }
