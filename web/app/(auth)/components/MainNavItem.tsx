@@ -14,11 +14,21 @@ type MainNavItemProps = {
 
 const baseStyles = {
   borderRadius: 1.5,
+  "&:hover": {
+    bgcolor: "primary.light",
+  },
   "&.Mui-selected": {
     bgcolor: "primary.main",
     color: "primary.contrastText",
     "& .MuiListItemIcon-root": {
       color: "primary.contrastText",
+    },
+    "&:hover": {
+      bgcolor: "primary.light",
+      color: "primary.contrastText",
+      "& .MuiListItemIcon-root": {
+        color: "primary.contrastText",
+      },
     },
   },
 };

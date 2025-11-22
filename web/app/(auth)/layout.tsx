@@ -23,6 +23,7 @@ import { useCurrentUser } from "@/app/(auth)/hooks/use-current-user";
 const placeholderUser = {
   id: "ash",
   displayName: "Ash Ketchum",
+  avatarUrl: null,
   roles: 1,
   isActive: true,
 };
@@ -39,6 +40,12 @@ export default function AuthenticatedLayout({
 
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(menuAnchor);
+  const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
+
+  const avatarSrc =
+    user.avatarUrl && user.avatarUrl !== failedAvatarUrl
+      ? user.avatarUrl
+      : undefined;
 
   const initials = useMemo(
     () => getInitials(user.displayName),
@@ -51,6 +58,12 @@ export default function AuthenticatedLayout({
 
   function handleMenuClose() {
     setMenuAnchor(null);
+  }
+
+  function handleAvatarError() {
+    if (user.avatarUrl) {
+      setFailedAvatarUrl(user.avatarUrl);
+    }
   }
 
   return (
@@ -107,8 +120,13 @@ export default function AuthenticatedLayout({
         >
           <IconButton onClick={handleAvatarClick}>
             <Avatar
-              src="/images/avatar-placeholder.png"
+              src={avatarSrc}
               alt={user.displayName ?? "User avatar"}
+              onError={handleAvatarError}
+              sx={{
+                bgcolor: avatarSrc ? undefined : "primary.main",
+                color: avatarSrc ? undefined : "primary.contrastText",
+              }}
             >
               {initials}
             </Avatar>
@@ -155,14 +173,13 @@ export default function AuthenticatedLayout({
                 mt: 1,
                 borderRadius: 1,
                 "&:hover": {
-                  backgroundColor: "rgba(231, 76, 60, 0.08)",
+                  backgroundColor: "error.light",
                 },
                 "& .MuiButton-root": {
                   width: "100%",
-                  justifyContent: "flex-start",
+                  justifyContent: "center",
                   fontWeight: 700,
-                  color: "error.main",
-                  py: 0.5,
+                  py: 0,
                   "&:hover": {
                     backgroundColor: "transparent",
                   },
