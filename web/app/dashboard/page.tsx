@@ -1,6 +1,7 @@
 "use client";
 
 import HomeOutlined from "@mui/icons-material/HomeOutlined";
+import PersonOutlined from "@mui/icons-material/PersonOutlined";
 import {
   Alert,
   Avatar,
@@ -94,12 +95,7 @@ export default function DashboardPage() {
         </Box>
 
         <List sx={{ flexGrow: 1, p: 0 }}>
-          <ListItemButton
-            component={Link}
-            href="/dashboard"
-            selected
-            sx={{ borderRadius: 1 }}
-          >
+          <ListItemButton component={Link} href="/dashboard" selected sx={{ borderRadius: 1 }}>
             <ListItemIcon>
               <HomeOutlined fontSize="small" />
             </ListItemIcon>
@@ -153,24 +149,44 @@ export default function DashboardPage() {
             </Box>
             <Divider />
             <MenuItem
-              component={Link}
-              href="/dashboard"
+              component={Link} href="/dashboard"
               onClick={handleMenuClose}
+              sx={{ px: 1, mx: 1, mt: 1, borderRadius: 1 }}
             >
+              <ListItemIcon sx={{ minWidth: 32 }}>
+                <HomeOutlined fontSize="small" />
+              </ListItemIcon>
               Home
             </MenuItem>
             <MenuItem
               component={Link}
-              href="/account"
-              onClick={handleMenuClose}
+              href="/account" onClick={handleMenuClose}
+              sx={{ px: 1, mx: 1, mt: 1, borderRadius: 1 }}
             >
+              <ListItemIcon sx={{ minWidth: 32 }}>
+                <PersonOutlined fontSize="small" />
+              </ListItemIcon>
               Profile
             </MenuItem>
-            <MenuItem disableRipple>
+            <MenuItem
+              disableRipple
+              sx={{
+                px: 1,
+                mx: 1,
+                mt: 1,
+                "&:hover": {
+                  backgroundColor: "transparent",
+                },
+              }}>
               <LogoutButton
                 variant="text"
                 fullWidth
+                color="error"
                 onLoggedOut={handleMenuClose}
+                sx={{
+                  fontWeight: 700,
+                  borderRadius: 1,
+                }}
               >
                 Logout
               </LogoutButton>
