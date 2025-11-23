@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getAuthTokenFromRequest } from "@/lib/auth-cookies";
 
-const PUBLIC_EXACT_PATHS = ["/", "/login"];
+const PUBLIC_EXACT_PATHS = ["/", "/login", "/register"];
 const PUBLIC_PREFIXES = ["/api", "/_next", "/static", "/public"];
 const BYPASS_PATHS = [
   "/favicon.ico",
