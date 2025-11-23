@@ -14,10 +14,26 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { FormEvent, Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ChangeEvent, FormEvent, Suspense, useState } from "react";
 
 import { registerMessages as m } from "@/app/register/messages";
+import { api } from "@/lib/api-client";
+import { useApiMutation } from "@/lib/hooks/use-api-mutation";
+import { queryKeys } from "@/lib/query-keys";
+
+type RegisterPayload = {
+  username: string;
+  password: string;
+  confirmPassword: string;
+};
+
+type RegisterResponse = {
+  userId: string;
+  expiresIn?: number;
+};
 
 export default function RegisterPage() {
   return (
@@ -39,24 +55,65 @@ export default function RegisterPage() {
 }
 
 function RegisterForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const redirectTo = normalizeReturnUrl(searchParams.get("returnUrl"));
+
+  const registerMutation = useApiMutation({
+    mutationFn: (payload) =>
+      api.post<RegisterResponse, RegisterPayload>("/auth/register", payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.currentUser });
+      router.replace(redirectTo);
+      router.refresh();
+    },
+  });
+
+  const trimmedUsername = username.trim();
+  const trimmedPassword = password.trim();
+  const trimmedConfirmPassword = confirmPassword.trim();
+
   const passwordsMatch =
-    password.trim().length > 0 &&
-    confirmPassword.trim().length > 0 &&
-    password === confirmPassword;
+    trimmedPassword.length > 0 &&
+    trimmedConfirmPassword.length > 0 &&
+    trimmedPassword === trimmedConfirmPassword;
+
   const isFormValid =
-    username.trim().length > 0 &&
-    password.trim().length >= 8 &&
-    confirmPassword.trim().length >= 8 &&
+    trimmedUsername.length > 0 &&
+    trimmedPassword.length >= 8 &&
+    trimmedConfirmPassword.length >= 8 &&
     passwordsMatch;
+
+  const confirmPasswordError = confirmPassword.length > 0 && !passwordsMatch;
+
+  const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (registerMutation.isError) registerMutation.reset();
+    setUsername(event.target.value);
+  };
+
+  const handlePasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (registerMutation.isError) registerMutation.reset();
+    setPassword(event.target.value);
+  };
+
+  const handleConfirmPasswordChange = (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    if (registerMutation.isError) registerMutation.reset();
+    setConfirmPassword(event.target.value);
+  };
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    registerMutation.mutate({ username, password, confirmPassword });
   }
 
   return (
@@ -86,7 +143,7 @@ function RegisterForm() {
           <TextField
             label={m.usernameLabel}
             value={username}
-            onChange={(event) => setUsername(event.target.value)}
+            onChange={handleUsernameChange}
             autoComplete="username"
             autoFocus
             required
@@ -98,7 +155,7 @@ function RegisterForm() {
             label={m.passwordLabel}
             type={showPassword ? "text" : "password"}
             value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={handlePasswordChange}
             autoComplete="new-password"
             required
             fullWidth
@@ -121,17 +178,13 @@ function RegisterForm() {
             label={m.confirmPasswordLabel}
             type={showConfirmPassword ? "text" : "password"}
             value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
+            onChange={handleConfirmPasswordChange}
             autoComplete="new-password"
             required
             fullWidth
             InputLabelProps={{ shrink: true, required: false }}
-            error={confirmPassword.length > 0 && !passwordsMatch}
-            helperText={
-              confirmPassword.length > 0 && !passwordsMatch
-                ? "Passwords must match"
-                : undefined
-            }
+            error={confirmPasswordError}
+            helperText={confirmPasswordError ? "Passwords must match" : undefined}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -150,12 +203,19 @@ function RegisterForm() {
             type="submit"
             variant="contained"
             size="large"
-            disabled={!isFormValid}
+            disabled={!isFormValid || registerMutation.isPending}
           >
-            {m.submitIdle}
+            {registerMutation.isPending ? m.submitPending : m.submitIdle}
           </Button>
         </Stack>
       </Paper>
     </Container>
   );
+}
+
+function normalizeReturnUrl(value: string | null) {
+  if (!value || value === "/login" || value === "/register") {
+    return "/home";
+  }
+  return value;
 }
