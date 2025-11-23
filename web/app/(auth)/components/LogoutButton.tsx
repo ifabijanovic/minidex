@@ -7,11 +7,11 @@ import {
   CircularProgress,
   Snackbar,
 } from "@mui/material";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { api } from "@/lib/api-client";
+import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 import { queryKeys } from "@/lib/query-keys";
 
 type LogoutButtonProps = ButtonProps & {
@@ -29,8 +29,9 @@ export function LogoutButton({
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
-  const logoutMutation = useMutation({
-    mutationFn: () => api.post<{ success: boolean }>("/auth/logout"),
+  const logoutMutation = useApiMutation<{ success: boolean }, void>({
+    method: "post",
+    path: "/auth/logout",
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.currentUser });
       router.replace(redirectTo);
@@ -45,7 +46,7 @@ export function LogoutButton({
   async function handleLogout() {
     setError(null);
     try {
-      await logoutMutation.mutateAsync();
+      await logoutMutation.mutateAsync(undefined);
     } catch {
       // Error state is handled in onError
     }

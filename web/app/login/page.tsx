@@ -17,7 +17,6 @@ import { AuthCard } from "@/app/components/AuthCard";
 import { PasswordField } from "@/app/components/PasswordField";
 import { loginMessages as m } from "@/app/login/messages";
 import { normalizeReturnUrl } from "@/app/utils/normalize-return-url";
-import { api } from "@/lib/api-client";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 import { queryKeys } from "@/lib/query-keys";
 
@@ -55,9 +54,9 @@ function LoginForm() {
 
   const redirectTo = normalizeReturnUrl(searchParams.get("returnUrl"));
 
-  const loginMutation = useApiMutation({
-    mutationFn: (credentials: LoginPayload) =>
-      api.post<LoginResponse, LoginPayload>("/auth/login", credentials),
+  const loginMutation = useApiMutation<LoginResponse, LoginPayload>({
+    method: "post",
+    path: "/auth/login",
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.currentUser });
       router.replace(redirectTo);

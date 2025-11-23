@@ -17,7 +17,6 @@ import { AuthCard } from "@/app/components/AuthCard";
 import { PasswordField } from "@/app/components/PasswordField";
 import { registerMessages as m } from "@/app/register/messages";
 import { normalizeReturnUrl } from "@/app/utils/normalize-return-url";
-import { api } from "@/lib/api-client";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 import { queryKeys } from "@/lib/query-keys";
 
@@ -57,9 +56,9 @@ function RegisterForm() {
 
   const redirectTo = normalizeReturnUrl(searchParams.get("returnUrl"));
 
-  const registerMutation = useApiMutation({
-    mutationFn: (payload: RegisterPayload) =>
-      api.post<RegisterResponse, RegisterPayload>("/auth/register", payload),
+  const registerMutation = useApiMutation<RegisterResponse, RegisterPayload>({
+    method: "post",
+    path: "/auth/register",
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.currentUser });
       router.replace(redirectTo);

@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { enqueueSnackbar } from "notistack";
 
-import { apiRequest, ApiRequestOptions } from "@/lib/api-client";
+import { api, ApiRequestOptions } from "@/lib/api-client";
 import { getFriendlyErrorMessage } from "@/lib/errors";
 
 type UseApiQueryOptions<TResponse> = Omit<
@@ -41,7 +41,7 @@ export function useApiQuery<TResponse = unknown>(
     queryKey,
     queryFn: async () => {
       try {
-        return await apiRequest<TResponse>(path, request);
+        return await api.get<TResponse>(path, request);
       } catch (error) {
         if (onError) {
           try {
