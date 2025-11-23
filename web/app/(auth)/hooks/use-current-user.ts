@@ -8,6 +8,7 @@ import { queryKeys } from "@/lib/query-keys";
 export type CurrentUser = {
   id: string;
   displayName?: string | null;
+  avatarUrl?: string | null;
   roles: number;
   isActive: boolean;
 };
@@ -18,6 +19,17 @@ const currentUserQuery = apiQueryOptions<CurrentUser>({
   request: { cache: "no-store" },
 });
 
-export function useCurrentUser() {
-  return useQuery(currentUserQuery);
+type UseCurrentUserOptions = {
+  enabled?: boolean;
+  placeholderData?: CurrentUser;
+};
+
+export function useCurrentUser(options?: UseCurrentUserOptions) {
+  const { enabled = true, placeholderData } = options ?? {};
+
+  return useQuery<CurrentUser>({
+    ...currentUserQuery,
+    enabled,
+    initialData: placeholderData,
+  });
 }

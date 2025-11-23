@@ -15,6 +15,17 @@ export interface ApiRequestOptions<TBody = unknown>
   body?: TBody;
 }
 
+export class ApiError<TBody = unknown> extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public body: TBody | null = null,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 /**
  * Builds a URL with query parameters
  */
@@ -95,12 +106,17 @@ export async function apiRequest<TResponse, TBody = unknown>(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({
-      message: `HTTP error! status: ${response.status}`,
-    }));
-    throw new Error(
-      error.message || `Request failed with status ${response.status}`,
-    );
+    let payload: unknown = null;
+    try {
+      payload = await response.json();
+    } catch {
+      // ignore
+    }
+    const message =
+      (payload as { message?: string })?.message ||
+      `Request failed with status ${response.status}`;
+    const error = new ApiError(message, response.status, payload);
+    throw error;
   }
 
   // Handle empty responses

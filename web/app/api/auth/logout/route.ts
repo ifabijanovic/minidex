@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { clearAuthCookie, getAuthTokenFromRequest } from "@/lib/auth-cookies";
-
-const API_URL = process.env.API_URL || "http://localhost:8080";
+import { getApiUrl } from "@/lib/env";
 
 export async function POST(request: NextRequest) {
   const token = getAuthTokenFromRequest(request);
@@ -12,7 +11,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const upstream = await fetch(`${API_URL}/v1/auth/logout`, {
+    const logoutUrl = await getApiUrl("/v1/auth/logout");
+    const upstream = await fetch(logoutUrl, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

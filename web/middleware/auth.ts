@@ -26,7 +26,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (pathname === "/login" && token) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/home", request.url));
   }
 
   return NextResponse.next();
@@ -54,11 +54,17 @@ function shouldBypass(pathname: string): boolean {
 
 function redirectToLogin(request: NextRequest): NextResponse {
   const loginUrl = new URL("/login", request.url);
-  const returnUrl = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+  const rawReturnUrl = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+  const normalizedReturnUrl = normalizeReturnUrl(rawReturnUrl);
 
-  if (returnUrl && returnUrl !== "/login") {
-    loginUrl.searchParams.set("returnUrl", returnUrl);
+  if (normalizedReturnUrl) {
+    loginUrl.searchParams.set("returnUrl", normalizedReturnUrl);
   }
 
   return NextResponse.redirect(loginUrl);
+}
+
+function normalizeReturnUrl(target: string | null) {
+  if (!target || target === "/login") return null;
+  return target;
 }

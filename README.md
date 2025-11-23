@@ -32,20 +32,42 @@
 2. Provide real values for the database connection and bootstrap admin account.
 3. `.env` is loaded automatically by Vapor (`Environment.get`) and by Docker Compose. Keep it out of source control.
 
-### Local Development (Vapor API)
+### Local Development
+
+Server development is generally done in Xcode, but you can develop in whatever editor and compile via shell:
 
 ```bash
 swift build
-swift run MiniDexServer
-```
-
-Run tests with:
-
-```bash
 swift test
 ```
 
-### Local Development (Next.js Web)
+Recommended way of launching the server is via Docker Compose, these are the available services:
+
+- `server` – Vapor API listening on port `8080`.
+- `web` – Next.js app on port `3000`, proxying requests to `server`.
+- `db` / `redis` – Postgres + Redis backing services that expect the same env variables defined in `.env`.
+
+To run the whole stack in a production environment first copy the `.env.example` into `.env`, tweak the values as
+needed and then run:
+
+```bash
+docker compose up --build
+```
+
+Run database migrations inside the Compose stack:
+
+```bash
+docker compose run --rm migrate
+```
+
+When developing the web locally it is useful to run the Next.js app in dev mode so you get all the tooling and hot
+reload. Start all services except web in Docker Compose:
+
+```bash
+docker compose up --build db redis server
+```
+
+And then launch the Next.js app locally:
 
 ```bash
 cd web
@@ -55,26 +77,12 @@ npm run dev
 
 The web app proxies API calls through Next.js routes (`/api/*`) to the Vapor server running on `http://localhost:8080`.
 
-### Docker Compose
-
-```bash
-docker compose up --build
-```
-
-- `server` – Vapor API listening on port `8080`.
-- `web` – Next.js app on port `3000`, proxying requests to `server`.
-- `db` / `redis` – Postgres + Redis backing services that expect the same env variables defined in `.env`.
-
-Run database migrations inside the Compose stack:
-
-```bash
-docker compose run --rm migrate
-```
-
 ## Testing & Quality
 
 - `swift test` exercises the server, shared modules, and utilities.
 - `cd web && npm run lint && npm run tsc && npm run prettier` keeps the frontend clean.
+- `cd web && npm run lint:fix` to automatically fix lint issues.
+- `cd web && npm run prettier:fix` to automatically apply formatting.
 - GitHub Actions (Check Server, Check Web, Secret Scan) run on every push/PR to `master`.
 
 ## Security

@@ -1,20 +1,27 @@
 "use client";
 
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import {
-  Alert,
   Box,
   Button,
   Container,
+  IconButton,
+  InputAdornment,
+  Link as MuiLink,
   Paper,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 
+import { loginMessages as m } from "@/app/login/messages";
 import { api } from "@/lib/api-client";
+import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 import { queryKeys } from "@/lib/query-keys";
 
 type LoginResponse = {
@@ -53,11 +60,11 @@ function LoginForm() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const redirectTo = searchParams.get("returnUrl") || "/dashboard";
+  const redirectTo = normalizeReturnUrl(searchParams.get("returnUrl"));
 
-  const loginMutation = useMutation({
+  const loginMutation = useApiMutation({
     mutationFn: (credentials: LoginPayload) =>
       api.post<LoginResponse, LoginPayload>("/auth/login", credentials),
     onSuccess: async () => {
@@ -65,79 +72,97 @@ function LoginForm() {
       router.replace(redirectTo);
       router.refresh();
     },
-    onError: (err) => {
-      setError(err instanceof Error ? err.message : "Unable to login");
-    },
   });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
-
-    try {
-      await loginMutation.mutateAsync({ username, password });
-    } catch {
-      // error handled in onError
-    }
+    loginMutation.mutate({ username, password });
   }
 
   const isFormValid = username.trim().length > 0 && password.trim().length > 0;
   const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (error) setError(null);
     if (loginMutation.isError) loginMutation.reset();
     setUsername(event.target.value);
   };
   const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (error) setError(null);
     if (loginMutation.isError) loginMutation.reset();
     setPassword(event.target.value);
   };
 
   return (
     <Container
-      maxWidth="sm"
+      maxWidth="xs"
       sx={{
         display: "flex",
         alignItems: "center",
+        justifyContent: "center",
         minHeight: "100vh",
       }}
     >
-      <Paper elevation={3} sx={{ p: 4, width: "100%" }}>
+      <Paper elevation={3} sx={{ p: { xs: 3, md: 4 }, width: "100%" }}>
         <Stack spacing={3} component="form" onSubmit={handleSubmit}>
-          <Box>
+          <Box textAlign="center">
             <Typography variant="h4" component="h1" gutterBottom>
-              Sign in
+              {m.title}
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              Enter your MiniDex credentials to continue.
+              {m.subtitlePrefix}{" "}
+              <MuiLink component={Link} href="/register" underline="hover">
+                {m.subtitleLink}
+              </MuiLink>
             </Typography>
           </Box>
 
-          {error && (
-            <Alert severity="error" onClose={() => setError(null)}>
-              {error}
-            </Alert>
-          )}
-
           <TextField
-            label="Username"
+            label={m.usernameLabel}
             value={username}
             onChange={handleUsernameChange}
             autoComplete="username"
             autoFocus
             required
             fullWidth
+            InputLabelProps={{ shrink: true, required: false }}
           />
 
-          <TextField
-            label="Password"
-            type="password"
-            value={password}
-            onChange={handlePasswordChange}
-            autoComplete="current-password"
-            required
-            fullWidth
-          />
+          <Box>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+            >
+              <Box />
+              <MuiLink
+                component={Link}
+                href="/forgot-password"
+                underline="hover"
+              >
+                {m.forgotPassword}
+              </MuiLink>
+            </Box>
+            <TextField
+              label={m.passwordLabel}
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={handlePasswordChange}
+              autoComplete="current-password"
+              required
+              fullWidth
+              InputLabelProps={{ shrink: true, required: false }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Box>
 
           <Button
             type="submit"
@@ -145,10 +170,17 @@ function LoginForm() {
             size="large"
             disabled={!isFormValid || loginMutation.isPending}
           >
-            {loginMutation.isPending ? "Signing in..." : "Sign in"}
+            {loginMutation.isPending ? m.submitPending : m.submitIdle}
           </Button>
         </Stack>
       </Paper>
     </Container>
   );
+}
+
+function normalizeReturnUrl(value: string | null) {
+  if (!value || value === "/login") {
+    return "/home";
+  }
+  return value;
 }
