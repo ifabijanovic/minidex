@@ -249,7 +249,7 @@ struct AuthControllerTests {
 
     @Test("registration succeeds for new username")
     func registrationSucceedsForNewUser() async throws {
-        try await AuthAPITestApp.withApp { app, _ in
+        try await AuthAPITestApp.withApp(newUserRoles: .admin) { app, _ in
             try await app.testing().test(
                 .POST,
                 "v1/auth/register",
@@ -270,8 +270,8 @@ struct AuthControllerTests {
                 .first()
 
             let user = try await credential?.$user.get(on: app.db)
-            #expect(user?.isActive == false)
-            #expect(user?.roles == 0)
+            #expect(user?.isActive == true)
+            #expect(user?.roles == Roles.admin.rawValue)
         }
     }
 }

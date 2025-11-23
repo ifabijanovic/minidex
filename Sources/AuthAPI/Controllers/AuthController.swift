@@ -25,10 +25,16 @@ struct RegisterIn: Content, Validatable {
 public struct AuthController: RouteCollection, Sendable {
     let tokenLength: Int
     let accessTokenExpiration: TimeInterval
+    let newUserRoles: Roles
 
-    public init(tokenLength: Int, accessTokenExpiration: TimeInterval) {
+    public init(
+        tokenLength: Int,
+        accessTokenExpiration: TimeInterval,
+        newUserRoles: Roles,
+    ) {
         self.tokenLength = tokenLength
         self.accessTokenExpiration = accessTokenExpiration
+        self.newUserRoles = newUserRoles
     }
 
     public func boot(routes: any RoutesBuilder) throws {
@@ -119,7 +125,7 @@ public struct AuthController: RouteCollection, Sendable {
         }
 
         try await req.db.transaction { db in
-            let user = DBUser(roles: 0, isActive: false)
+            let user = DBUser(roles: newUserRoles.rawValue, isActive: true)
             try await user.save(on: db)
 
             let credential = DBCredential(

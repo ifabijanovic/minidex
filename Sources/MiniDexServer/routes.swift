@@ -6,6 +6,7 @@ func routes(_ app: Application) throws {
     try app.register(collection: AuthController(
         tokenLength: Settings.Auth.tokenLength,
         accessTokenExpiration: Settings.Auth.accessTokenExpiration,
+        newUserRoles: .hobbyist,
     ))
 
     // Admin routes

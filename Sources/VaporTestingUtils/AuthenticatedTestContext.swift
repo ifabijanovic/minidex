@@ -65,6 +65,7 @@ public struct AuthenticatedTestContext {
         try app.register(collection: AuthController(
             tokenLength: tokenLength,
             accessTokenExpiration: accessTokenExpiration,
+            newUserRoles: roles,
         ))
 
         let user = try await createUser(
