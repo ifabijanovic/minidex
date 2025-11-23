@@ -3,7 +3,6 @@
 import HomeOutlined from "@mui/icons-material/HomeOutlined";
 import PersonOutlined from "@mui/icons-material/PersonOutlined";
 import {
-  Avatar,
   Box,
   Divider,
   IconButton,
@@ -14,43 +13,23 @@ import {
   Typography,
 } from "@mui/material";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import LogoutButton from "@/app/(auth)/components/LogoutButton";
 import { MainNavItem } from "@/app/(auth)/components/MainNavItem";
-import { useCurrentUser } from "@/app/(auth)/hooks/use-current-user";
-
-const placeholderUser = {
-  id: "ash",
-  displayName: "Ash Ketchum",
-  avatarUrl: null,
-  roles: 1,
-  isActive: true,
-};
+import { UserAvatar } from "@/app/(auth)/components/UserAvatar";
+import { useCurrentProfile } from "@/app/(auth)/hooks/use-current-profile";
 
 export default function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data: user = placeholderUser, error } = useCurrentUser({
-    enabled: false,
-    placeholderData: placeholderUser,
-  });
-
+  const { data: profile, isLoading: isProfileLoading } = useCurrentProfile();
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(menuAnchor);
-  const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
 
-  const avatarSrc =
-    user.avatarUrl && user.avatarUrl !== failedAvatarUrl
-      ? user.avatarUrl
-      : undefined;
-
-  const initials = useMemo(
-    () => getInitials(user.displayName),
-    [user.displayName],
-  );
+  const displayName = profile?.displayName ?? "User";
 
   function handleAvatarClick(event: React.MouseEvent<HTMLElement>) {
     setMenuAnchor(event.currentTarget);
@@ -58,12 +37,6 @@ export default function AuthenticatedLayout({
 
   function handleMenuClose() {
     setMenuAnchor(null);
-  }
-
-  function handleAvatarError() {
-    if (user.avatarUrl) {
-      setFailedAvatarUrl(user.avatarUrl);
-    }
   }
 
   return (
@@ -118,18 +91,12 @@ export default function AuthenticatedLayout({
             bgcolor: "background.default",
           }}
         >
-          <IconButton onClick={handleAvatarClick}>
-            <Avatar
-              src={avatarSrc}
-              alt={user.displayName ?? "User avatar"}
-              onError={handleAvatarError}
-              sx={{
-                bgcolor: avatarSrc ? undefined : "primary.main",
-                color: avatarSrc ? undefined : "primary.contrastText",
-              }}
-            >
-              {initials}
-            </Avatar>
+          <IconButton onClick={handleAvatarClick} disabled={isProfileLoading}>
+            <UserAvatar
+              displayName={displayName}
+              avatarURL={profile?.avatarURL}
+              isLoading={isProfileLoading}
+            />
           </IconButton>
 
           <Menu
@@ -140,7 +107,7 @@ export default function AuthenticatedLayout({
             transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
             <Box sx={{ px: 2, py: 1 }}>
-              <Typography variant="subtitle2">{user.displayName}</Typography>
+              <Typography variant="subtitle2">{displayName}</Typography>
             </Box>
             <Divider />
             <MenuItem
@@ -199,23 +166,9 @@ export default function AuthenticatedLayout({
         </Box>
 
         <Box component="main" sx={{ flex: 1, px: 4, py: 2 }}>
-          {error && (
-            <Box mb={2}>
-              <Typography variant="body2" color="error">
-                Unable to fetch user information (showing placeholders).
-              </Typography>
-            </Box>
-          )}
           {children}
         </Box>
       </Box>
     </Box>
   );
-}
-
-function getInitials(name?: string | null) {
-  if (!name) return "U";
-  const parts = name.trim().split(" ").filter(Boolean);
-  const initials = parts.slice(0, 2).map((part) => part[0]);
-  return initials.join("").toUpperCase();
 }
