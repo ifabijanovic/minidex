@@ -3,8 +3,7 @@ import { Buffer } from "node:buffer";
 import { NextRequest, NextResponse } from "next/server";
 
 import { clearAuthCookie, setAuthCookie } from "@/lib/auth-cookies";
-
-const API_URL = process.env.API_URL || "http://localhost:8080";
+import { getApiUrl } from "@/lib/env";
 
 type LoginResponse = {
   accessToken?: string;
@@ -25,7 +24,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const upstream = await fetch(`${API_URL}/v1/auth/login`, {
+    const loginUrl = await getApiUrl("/v1/auth/login");
+    const upstream = await fetch(loginUrl, {
       method: "POST",
       headers: {
         Authorization: buildBasicAuthHeader(username, password),

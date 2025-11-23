@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
-const API_URL = process.env.API_URL || "http://localhost:8080";
+import { getApiUrl } from "@/lib/env";
 
 export async function GET(
   request: NextRequest,
@@ -64,7 +64,8 @@ async function proxyRequest(
     // Get query parameters from the request
     const searchParams = request.nextUrl.searchParams;
     const queryString = searchParams.toString();
-    const url = `${API_URL}${path}${queryString ? `?${queryString}` : ""}`;
+    const baseUrl = await getApiUrl(path);
+    const url = `${baseUrl}${queryString ? `?${queryString}` : ""}`;
 
     // Get the auth token from HttpOnly cookie
     // TODO: Implement cookie reading when authentication is set up
