@@ -72,11 +72,11 @@ export async function POST(request: NextRequest) {
 
 function extractMessage(payload?: RegisterResponse | null): string | null {
   if (!payload) return null;
-  return payload.message || payload.error || payload.reason || null;
+  return payload.message || payload.reason || payload.error || null;
 }
 
 function respondWithError(status: number, message: string): NextResponse {
-  const response = NextResponse.json({ error: message }, { status });
+  const response = NextResponse.json({ message }, { status });
   clearAuthCookie(response);
   return response;
 }

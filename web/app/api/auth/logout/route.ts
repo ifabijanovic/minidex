@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
       const payload = await upstream.json().catch(() => ({}));
       const message =
         payload.message ||
-        payload.error ||
         payload.reason ||
+        payload.error ||
         "Failed to logout";
       return respondWithError(upstream.status || 500, message);
     }
@@ -45,7 +45,7 @@ function respondWithSuccess(): NextResponse {
 }
 
 function respondWithError(status: number, message: string): NextResponse {
-  const response = NextResponse.json({ error: message }, { status });
+  const response = NextResponse.json({ message }, { status });
   clearAuthCookie(response);
   return response;
 }

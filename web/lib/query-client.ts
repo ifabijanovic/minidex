@@ -1,4 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
+import { ApiError } from "@/lib/api-client";
 
 // Base URL for API calls - all calls go through Next.js proxy routes
 export const API_BASE_URL = "/api";
@@ -17,7 +18,11 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
     },
     mutations: {
-      retry: 1,
+      retry: (error: unknown, attempt: number) => {
+        if (!(error instanceof ApiError)) return attempt < 1; // network/unknown
+        if (error.status >= 500 || error.status === 429) return attempt < 1;
+        return false;
+      },
     },
   },
 });
