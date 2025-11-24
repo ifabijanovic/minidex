@@ -9,6 +9,12 @@ public struct AuthOut: Content {
     public var accessToken: String
     public var expiresIn: Int
     public var userId: UUID
+    public var roles: Set<String>
+}
+
+public struct MeOut: Content {
+    public var userId: UUID
+    public var roles: Set<String>
 }
 
 struct RegisterIn: Content, Validatable {
@@ -26,15 +32,18 @@ public struct AuthController: RouteCollection, Sendable {
     let tokenLength: Int
     let accessTokenExpiration: TimeInterval
     let newUserRoles: Roles
+    let rolesToStrings: @Sendable (Roles) -> Set<String>
 
     public init(
         tokenLength: Int,
         accessTokenExpiration: TimeInterval,
         newUserRoles: Roles,
+        rolesToStrings: @escaping @Sendable (Roles) -> Set<String>,
     ) {
         self.tokenLength = tokenLength
         self.accessTokenExpiration = accessTokenExpiration
         self.newUserRoles = newUserRoles
+        self.rolesToStrings = rolesToStrings
     }
 
     public func boot(routes: any RoutesBuilder) throws {
@@ -45,13 +54,14 @@ public struct AuthController: RouteCollection, Sendable {
             .grouped(UsernameAndPasswordAuthenticator())
             .post("login", use: self.login)
 
-        group
+        let behindToken = group
             .grouped(TokenAuthenticator())
             .grouped(AuthUser.guardMiddleware())
-            .post("logout", use: self.logout)
+
+        behindToken.get("me", use: self.me)
+        behindToken.post("logout", use: self.logout)
     }
 
-    @Sendable
     func login(req: Request) async throws -> AuthOut {
         var user = try req.auth.require(AuthUser.self)
 
@@ -82,10 +92,10 @@ public struct AuthController: RouteCollection, Sendable {
             accessToken: token.rawEncoded,
             expiresIn: Int(accessTokenExpiration),
             userId: user.id,
+            roles: rolesToStrings(user.roles),
         )
     }
 
-    @Sendable
     func logout(req: Request) async throws -> HTTPStatus {
         let user = try req.auth.require(AuthUser.self)
 
@@ -100,7 +110,14 @@ public struct AuthController: RouteCollection, Sendable {
         return .ok
     }
 
-    @Sendable
+    func me(req: Request) async throws -> MeOut {
+        let user = try req.auth.require(AuthUser.self)
+        return .init(
+            userId: user.id,
+            roles: rolesToStrings(user.roles),
+        )
+    }
+
     func register(req: Request) async throws -> Response {
         try RegisterIn.validate(content: req)
         let input = try req.content.decode(RegisterIn.self)
@@ -162,6 +179,7 @@ public struct AuthController: RouteCollection, Sendable {
             accessToken: token.rawEncoded,
             expiresIn: Int(userToken.expiresAt.timeIntervalSinceNow),
             userId: userID,
+            roles: rolesToStrings(newUserRoles),
         )
         try response.content.encode(content)
         return response

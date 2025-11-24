@@ -15,10 +15,10 @@ import { ChangeEvent, FormEvent, Suspense, useState } from "react";
 
 import { AuthCard } from "@/app/components/AuthCard";
 import { PasswordField } from "@/app/components/PasswordField";
+import { useCurrentUser } from "@/app/context/user-context";
 import { registerMessages as m } from "@/app/register/messages";
 import { normalizeReturnUrl } from "@/app/utils/normalize-return-url";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
-import { queryKeys } from "@/lib/query-keys";
 
 type RegisterPayload = {
   username: string;
@@ -29,6 +29,7 @@ type RegisterPayload = {
 type RegisterResponse = {
   userId: string;
   expiresIn?: number;
+  roles?: string[];
 };
 
 export default function RegisterPage() {
@@ -49,6 +50,7 @@ function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const { setUser } = useCurrentUser();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -59,8 +61,13 @@ function RegisterForm() {
   const registerMutation = useApiMutation<RegisterResponse, RegisterPayload>({
     method: "post",
     path: "/auth/register",
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.currentUser });
+    onSuccess: async (data) => {
+      if (data.userId) {
+        setUser({
+          userId: data.userId,
+          roles: data.roles || [],
+        });
+      }
       router.replace(redirectTo);
       router.refresh();
     },

@@ -3,6 +3,10 @@ import AuthDB
 import Vapor
 import VaporTestingUtils
 
+extension Roles {
+    static let tester = Roles(rawValue: 1 << 1)
+}
+
 enum AuthAPITestApp {
     static let defaultTokenLength = 32
     static let defaultExpiration: TimeInterval = 60 * 60
@@ -17,6 +21,12 @@ enum AuthAPITestApp {
                     tokenLength: defaultTokenLength,
                     accessTokenExpiration: defaultExpiration,
                     newUserRoles: newUserRoles,
+                    rolesToStrings: { roles in
+                        var result = Set<String>()
+                        if roles.contains(.admin) { result.insert("admin") }
+                        if roles.contains(.tester) { result.insert("tester") }
+                        return result
+                    }
                 )
             )
             try context.app.register(collection: UserController())

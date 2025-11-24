@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
       payload.accessToken,
       payload.userId,
       payload.expiresIn,
+      payload.roles,
       200,
     );
   } catch (error) {

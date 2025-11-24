@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
+import { UserProvider } from "@/app/context/user-context";
 import { QueryProvider } from "@/app/providers/query-provider";
 import { AppThemeProvider } from "@/app/providers/theme-provider";
 import { ToastProvider } from "@/app/providers/toast-provider";
@@ -22,7 +23,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <QueryProvider>
           <AppThemeProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <UserProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </UserProvider>
           </AppThemeProvider>
         </QueryProvider>
       </body>

@@ -43,6 +43,8 @@ struct AuthControllerTests {
 
             let ttl = snapshot.setexCalls.filter { $0.key == userKey }.first?.ttl
             #expect(ttl == Int(AuthAPITestApp.defaultExpiration))
+
+            #expect(login.roles == ["admin"])
         }
     }
 
@@ -153,8 +155,8 @@ struct AuthControllerTests {
         }
     }
 
-    @Test("logout returns not found when token missing")
-    func logoutWithMissingTokenReturnsNotFound() async throws {
+    @Test("logout fails when token missing")
+    func logoutWithMissingTokenFails() async throws {
         try await AuthAPITestApp.withApp { app, redis in
             let user = try await AuthenticatedTestContext.createUser(
                 on: app.db,
@@ -215,6 +217,34 @@ struct AuthControllerTests {
         }
     }
 
+    @Test("me returns active user roles")
+    func meReturnsUserRoles() async throws {
+        try await AuthAPITestApp.withApp { app, redis in
+            let user = try await AuthenticatedTestContext.createUser(
+                on: app.db,
+                username: "dawn",
+                roles: .tester,
+                isActive: true
+            )
+            let userID = try user.requireID()
+            let login = try await AuthenticatedTestContext.login(app: app, username: "dawn", password: "Password!23")
+
+            try await app.testing().test(
+                .GET,
+                "v1/auth/me",
+                beforeRequest: { req in
+                    AuthAPITestHelpers.authorize(&req, token: login.accessToken)
+                },
+                afterResponse: { res async throws in
+                    #expect(res.status == .ok)
+                    let dto = try res.content.decode(MeOut.self)
+                    #expect(dto.userId == userID)
+                    #expect(dto.roles == ["tester"])
+                }
+            )
+        }
+    }
+
     @Test("registration rejects duplicate username")
     func registrationRejectsDuplicateUsername() async throws {
         try await AuthAPITestApp.withApp { app, _ in
@@ -249,7 +279,7 @@ struct AuthControllerTests {
 
     @Test("registration succeeds for new username")
     func registrationSucceedsForNewUser() async throws {
-        try await AuthAPITestApp.withApp(newUserRoles: .admin) { app, redis in
+        try await AuthAPITestApp.withApp(newUserRoles: .tester) { app, redis in
             var response: AuthOut?
             try await app.testing().test(
                 .POST,
@@ -278,7 +308,7 @@ struct AuthControllerTests {
 
             let user = try await credential?.$user.get(on: app.db)
             #expect(user?.isActive == true)
-            #expect(user?.roles == Roles.admin.rawValue)
+            #expect(user?.roles == Roles.tester.rawValue)
 
             let tokens = try await DBUserToken.query(on: app.db).all()
             #expect(tokens.count == 1)
@@ -299,6 +329,8 @@ struct AuthControllerTests {
 
             let ttl = snapshot.setexCalls.filter { $0.key == userKey }.first?.ttl
             #expect(ttl == response.expiresIn)
+
+            #expect(response.roles == ["tester"])
         }
     }
 }

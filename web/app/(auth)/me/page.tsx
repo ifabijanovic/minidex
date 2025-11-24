@@ -21,6 +21,7 @@ import {
   useCurrentProfile,
 } from "@/app/(auth)/hooks/use-current-profile";
 import { profileEditMessages as m } from "@/app/(auth)/me/messages";
+import { useCurrentUser } from "@/app/context/user-context";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 import { queryKeys } from "@/lib/query-keys";
 
@@ -41,6 +42,7 @@ function isValidUrl(url: string): boolean {
 
 export default function ProfileEditPage() {
   const queryClient = useQueryClient();
+  const { user } = useCurrentUser();
   const { data: profile, isLoading: isProfileLoading } = useCurrentProfile();
 
   const [displayName, setDisplayName] = useState("");
@@ -64,9 +66,11 @@ export default function ProfileEditPage() {
     method: profile ? "patch" : "post",
     path: "/v1/me",
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.currentProfile,
-      });
+      if (user) {
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.currentProfile(user.userId),
+        });
+      }
       enqueueSnackbar(m.saveSuccess, { variant: "success" });
     },
   });

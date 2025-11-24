@@ -1,5 +1,6 @@
 "use client";
 
+import { useCurrentUser } from "@/app/context/user-context";
 import { ApiError } from "@/lib/api-client";
 import { useApiQuery } from "@/lib/hooks/use-api-query";
 import { queryKeys } from "@/lib/query-keys";
@@ -16,13 +17,14 @@ type UseCurrentProfileOptions = {
 };
 
 export function useCurrentProfile(options?: UseCurrentProfileOptions) {
-  const { enabled = true } = options ?? {};
+  const { user } = useCurrentUser();
+  const { enabled: optionsEnabled = true } = options ?? {};
 
   return useApiQuery<CurrentProfile | null>({
-    queryKey: queryKeys.currentProfile,
+    queryKey: queryKeys.currentProfile(user?.userId ?? ""),
     path: "/v1/me",
     request: { cache: "no-store" },
-    enabled,
+    enabled: user !== null && optionsEnabled,
     onError: (error) => {
       if (error instanceof ApiError && error.status === 404) {
         return null;

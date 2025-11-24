@@ -7,6 +7,7 @@ func routes(_ app: Application) throws {
         tokenLength: Settings.Auth.tokenLength,
         accessTokenExpiration: Settings.Auth.accessTokenExpiration,
         newUserRoles: .hobbyist,
+        rolesToStrings: \.asStringSet,
     ))
 
     // Admin routes
