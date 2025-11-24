@@ -155,8 +155,8 @@ struct AuthControllerTests {
         }
     }
 
-    @Test("logout returns not found when token missing")
-    func logoutWithMissingTokenReturnsNotFound() async throws {
+    @Test("logout fails when token missing")
+    func logoutWithMissingTokenFails() async throws {
         try await AuthAPITestApp.withApp { app, redis in
             let user = try await AuthenticatedTestContext.createUser(
                 on: app.db,
@@ -214,6 +214,34 @@ struct AuthControllerTests {
                 .all()
             #expect(tokens.count == 1)
             #expect(tokens.first?.isRevoked == true)
+        }
+    }
+
+    @Test("me returns active user roles")
+    func meReturnsUserRoles() async throws {
+        try await AuthAPITestApp.withApp { app, redis in
+            let user = try await AuthenticatedTestContext.createUser(
+                on: app.db,
+                username: "dawn",
+                roles: .tester,
+                isActive: true
+            )
+            let userID = try user.requireID()
+            let login = try await AuthenticatedTestContext.login(app: app, username: "dawn", password: "Password!23")
+
+            try await app.testing().test(
+                .GET,
+                "v1/auth/me",
+                beforeRequest: { req in
+                    AuthAPITestHelpers.authorize(&req, token: login.accessToken)
+                },
+                afterResponse: { res async throws in
+                    #expect(res.status == .ok)
+                    let dto = try res.content.decode(MeOut.self)
+                    #expect(dto.userId == userID)
+                    #expect(dto.roles == ["tester"])
+                }
+            )
         }
     }
 
