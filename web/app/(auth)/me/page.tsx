@@ -105,42 +105,17 @@ export default function ProfileEditPage() {
   const isFormDisabled = isProfileLoading || saveMutation.isPending;
   const hasFormError = avatarUrlError !== null;
 
-  if (isProfileLoading) {
-    return (
-      <Container maxWidth="md">
-        <Stack spacing={3}>
-          <Card>
-            <CardContent>
-              <Skeleton
-                variant="text"
-                width="40%"
-                height={32}
-                animation="wave"
-                sx={{ mb: 1 }}
-              />
-              <Stack spacing={3}>
-                <Skeleton variant="rectangular" height={56} animation="wave" />
-                <Skeleton variant="rectangular" height={56} animation="wave" />
-                <Skeleton variant="rectangular" height={40} animation="wave" />
-              </Stack>
-            </CardContent>
-          </Card>
-        </Stack>
-      </Container>
-    );
-  }
-
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="md" component="form" onSubmit={handleSubmit}>
       <Stack spacing={3}>
+        <Typography variant="h5">{m.title}</Typography>
+
         <Card>
           <CardContent>
-            <Typography variant="h5" gutterBottom>
-              {m.title}
-            </Typography>
-
-            <Box component="form" onSubmit={handleSubmit}>
-              <Stack spacing={3}>
+            <Stack spacing={3} sx={{ p: 2 }}>
+              {isProfileLoading ? (
+                <Skeleton variant="rectangular" height={56} animation="wave" />
+              ) : (
                 <TextField
                   label={m.displayNameLabel}
                   value={displayName}
@@ -150,7 +125,11 @@ export default function ProfileEditPage() {
                   disabled={isFormDisabled}
                   InputLabelProps={{ shrink: true, required: false }}
                 />
+              )}
 
+              {isProfileLoading ? (
+                <Skeleton variant="rectangular" height={56} animation="wave" />
+              ) : (
                 <TextField
                   label={m.avatarUrlLabel}
                   value={avatarURL}
@@ -162,22 +141,21 @@ export default function ProfileEditPage() {
                   helperText={avatarUrlError}
                   InputLabelProps={{ shrink: true, required: false }}
                 />
-
-                <Box>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    size="large"
-                    disabled={isFormDisabled || hasFormError}
-                    fullWidth
-                  >
-                    {saveMutation.isPending ? m.submitPending : m.submitIdle}
-                  </Button>
-                </Box>
-              </Stack>
-            </Box>
+              )}
+            </Stack>
           </CardContent>
         </Card>
+
+        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            disabled={isFormDisabled || hasFormError}
+          >
+            {saveMutation.isPending ? m.submitPending : m.submitIdle}
+          </Button>
+        </Box>
       </Stack>
     </Container>
   );
