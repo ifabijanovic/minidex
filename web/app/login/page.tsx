@@ -15,11 +15,10 @@ import { FormEvent, Suspense, useState } from "react";
 
 import { AuthCard } from "@/app/components/AuthCard";
 import { PasswordField } from "@/app/components/PasswordField";
+import { useCurrentUser } from "@/app/context/user-context";
 import { loginMessages as m } from "@/app/login/messages";
 import { normalizeReturnUrl } from "@/app/utils/normalize-return-url";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
-import { queryKeys } from "@/lib/query-keys";
-import { useCurrentUser } from "@/app/context/user-context";
 
 type LoginResponse = {
   userId: string;
@@ -68,7 +67,6 @@ function LoginForm() {
           expiresIn: data.expiresIn,
         });
       }
-      await queryClient.invalidateQueries({ queryKey: queryKeys.currentUser });
       router.replace(redirectTo);
       router.refresh();
     },

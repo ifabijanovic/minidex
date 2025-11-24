@@ -15,11 +15,10 @@ import { ChangeEvent, FormEvent, Suspense, useState } from "react";
 
 import { AuthCard } from "@/app/components/AuthCard";
 import { PasswordField } from "@/app/components/PasswordField";
+import { useCurrentUser } from "@/app/context/user-context";
 import { registerMessages as m } from "@/app/register/messages";
 import { normalizeReturnUrl } from "@/app/utils/normalize-return-url";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
-import { queryKeys } from "@/lib/query-keys";
-import { useCurrentUser } from "@/app/context/user-context";
 
 type RegisterPayload = {
   username: string;
@@ -70,7 +69,6 @@ function RegisterForm() {
           expiresIn: data.expiresIn,
         });
       }
-      await queryClient.invalidateQueries({ queryKey: queryKeys.currentUser });
       router.replace(redirectTo);
       router.refresh();
     },

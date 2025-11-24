@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, ReactNode, useContext, useState } from "react";
 
 export type User = {
   userId: string;
@@ -32,4 +32,3 @@ export function useCurrentUser() {
   }
   return context;
 }
-
