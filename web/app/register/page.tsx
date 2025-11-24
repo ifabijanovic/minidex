@@ -66,7 +66,6 @@ function RegisterForm() {
         setUser({
           userId: data.userId,
           roles: data.roles || [],
-          expiresIn: data.expiresIn,
         });
       }
       router.replace(redirectTo);
