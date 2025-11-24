@@ -19,10 +19,12 @@ import { loginMessages as m } from "@/app/login/messages";
 import { normalizeReturnUrl } from "@/app/utils/normalize-return-url";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 import { queryKeys } from "@/lib/query-keys";
+import { useCurrentUser } from "@/app/context/user-context";
 
 type LoginResponse = {
   userId: string;
   expiresIn?: number;
+  roles?: string[];
 };
 
 export default function LoginPage() {
@@ -48,6 +50,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const { setUser } = useCurrentUser();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -57,7 +60,14 @@ function LoginForm() {
   const loginMutation = useApiMutation<LoginResponse, LoginPayload>({
     method: "post",
     path: "/auth/login",
-    onSuccess: async () => {
+    onSuccess: async (data) => {
+      if (data.userId) {
+        setUser({
+          userId: data.userId,
+          roles: data.roles || [],
+          expiresIn: data.expiresIn,
+        });
+      }
       await queryClient.invalidateQueries({ queryKey: queryKeys.currentUser });
       router.replace(redirectTo);
       router.refresh();

@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import { QueryProvider } from "@/app/providers/query-provider";
 import { AppThemeProvider } from "@/app/providers/theme-provider";
 import { ToastProvider } from "@/app/providers/toast-provider";
+import { UserProvider } from "@/app/context/user-context";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +23,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <QueryProvider>
           <AppThemeProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <UserProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </UserProvider>
           </AppThemeProvider>
         </QueryProvider>
       </body>

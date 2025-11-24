@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
+import { useCurrentUser } from "@/app/context/user-context";
 
 type LogoutButtonProps = ButtonProps & {
   redirectTo?: string;
@@ -19,6 +20,7 @@ export function LogoutButton({
 }: LogoutButtonProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { setUser } = useCurrentUser();
 
   const logoutMutation = useApiMutation<{ success: boolean }, void>({
     method: "post",
@@ -30,6 +32,7 @@ export function LogoutButton({
     try {
       await logoutMutation.mutateAsync(undefined);
     } finally {
+      setUser(null);
       await queryClient.resetQueries();
       router.replace(redirectTo);
       router.refresh();

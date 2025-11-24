@@ -23,12 +23,14 @@ export function createAuthSuccessResponse(
   accessToken: string,
   userId: string | undefined,
   expiresIn: number | undefined,
+  roles: string[] | undefined,
   status: number = 200,
 ): NextResponse {
   const response = NextResponse.json(
     {
       userId,
       expiresIn,
+      roles,
     },
     { status },
   );
