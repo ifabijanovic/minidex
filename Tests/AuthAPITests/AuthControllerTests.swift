@@ -43,6 +43,8 @@ struct AuthControllerTests {
 
             let ttl = snapshot.setexCalls.filter { $0.key == userKey }.first?.ttl
             #expect(ttl == Int(AuthAPITestApp.defaultExpiration))
+
+            #expect(login.roles == ["admin"])
         }
     }
 
@@ -249,7 +251,7 @@ struct AuthControllerTests {
 
     @Test("registration succeeds for new username")
     func registrationSucceedsForNewUser() async throws {
-        try await AuthAPITestApp.withApp(newUserRoles: .admin) { app, redis in
+        try await AuthAPITestApp.withApp(newUserRoles: .tester) { app, redis in
             var response: AuthOut?
             try await app.testing().test(
                 .POST,
@@ -278,7 +280,7 @@ struct AuthControllerTests {
 
             let user = try await credential?.$user.get(on: app.db)
             #expect(user?.isActive == true)
-            #expect(user?.roles == Roles.admin.rawValue)
+            #expect(user?.roles == Roles.tester.rawValue)
 
             let tokens = try await DBUserToken.query(on: app.db).all()
             #expect(tokens.count == 1)
@@ -299,6 +301,8 @@ struct AuthControllerTests {
 
             let ttl = snapshot.setexCalls.filter { $0.key == userKey }.first?.ttl
             #expect(ttl == response.expiresIn)
+
+            #expect(response.roles == ["tester"])
         }
     }
 }

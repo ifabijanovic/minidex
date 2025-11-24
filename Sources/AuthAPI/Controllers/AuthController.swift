@@ -9,6 +9,7 @@ public struct AuthOut: Content {
     public var accessToken: String
     public var expiresIn: Int
     public var userId: UUID
+    public var roles: Set<String>
 }
 
 struct RegisterIn: Content, Validatable {
@@ -26,15 +27,18 @@ public struct AuthController: RouteCollection, Sendable {
     let tokenLength: Int
     let accessTokenExpiration: TimeInterval
     let newUserRoles: Roles
+    let rolesToStrings: @Sendable (Roles) -> Set<String>
 
     public init(
         tokenLength: Int,
         accessTokenExpiration: TimeInterval,
         newUserRoles: Roles,
+        rolesToStrings: @escaping @Sendable (Roles) -> Set<String>,
     ) {
         self.tokenLength = tokenLength
         self.accessTokenExpiration = accessTokenExpiration
         self.newUserRoles = newUserRoles
+        self.rolesToStrings = rolesToStrings
     }
 
     public func boot(routes: any RoutesBuilder) throws {
@@ -82,6 +86,7 @@ public struct AuthController: RouteCollection, Sendable {
             accessToken: token.rawEncoded,
             expiresIn: Int(accessTokenExpiration),
             userId: user.id,
+            roles: rolesToStrings(user.roles),
         )
     }
 
@@ -162,6 +167,7 @@ public struct AuthController: RouteCollection, Sendable {
             accessToken: token.rawEncoded,
             expiresIn: Int(userToken.expiresAt.timeIntervalSinceNow),
             userId: userID,
+            roles: rolesToStrings(newUserRoles),
         )
         try response.content.encode(content)
         return response
