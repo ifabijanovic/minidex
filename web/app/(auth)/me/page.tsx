@@ -5,16 +5,21 @@ import {
   Button,
   Card,
   CardContent,
-  CircularProgress,
   Container,
+  Skeleton,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
+import { enqueueSnackbar } from "notistack";
 import { FormEvent, useEffect, useState } from "react";
 
-import { useCurrentProfile, type CurrentProfile } from "@/app/(auth)/hooks/use-current-profile";
+import {
+  type CurrentProfile,
+  useCurrentProfile,
+} from "@/app/(auth)/hooks/use-current-profile";
+import { profileEditMessages as m } from "@/app/(auth)/me/messages";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 import { queryKeys } from "@/lib/query-keys";
 
@@ -43,47 +48,44 @@ export default function ProfileEditPage() {
 
   // Initialize form with profile data when it loads
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (profile) {
       setDisplayName(profile.displayName ?? "");
       setAvatarURL(profile.avatarURL ?? "");
-    } else if (profile === null) {
-      // Profile doesn't exist, start with empty form
+    } else {
       setDisplayName("");
       setAvatarURL("");
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [profile]);
 
-  const createMutation = useApiMutation<CurrentProfile, ProfilePayload>({
-    method: "post",
+  const saveMutation = useApiMutation<CurrentProfile, ProfilePayload>({
+    method: profile ? "patch" : "post",
     path: "/v1/me",
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.currentProfile });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.currentProfile,
+      });
+      enqueueSnackbar(m.saveSuccess, { variant: "success" });
     },
   });
 
-  const updateMutation = useApiMutation<CurrentProfile, ProfilePayload>({
-    method: "patch",
-    path: "/v1/me",
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.currentProfile });
-    },
-  });
-
-  const handleDisplayNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (createMutation.isError) createMutation.reset();
-    if (updateMutation.isError) updateMutation.reset();
+  const handleDisplayNameChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    if (saveMutation.isError) saveMutation.reset();
     setDisplayName(event.target.value);
   };
 
-  const handleAvatarUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (createMutation.isError) createMutation.reset();
-    if (updateMutation.isError) updateMutation.reset();
+  const handleAvatarUrlChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    if (saveMutation.isError) saveMutation.reset();
     const value = event.target.value;
     setAvatarURL(value);
 
-    // Validate URL format
     if (value.trim() && !isValidUrl(value)) {
-      setAvatarUrlError("Please enter a valid URL");
+      setAvatarUrlError(m.avatarUrlError);
     } else {
       setAvatarUrlError(null);
     }
@@ -97,31 +99,33 @@ export default function ProfileEditPage() {
       avatarURL: avatarURL.trim() || null,
     };
 
-    // Choose mutation based on profile existence
-    if (profile) {
-      updateMutation.mutate(payload);
-    } else {
-      createMutation.mutate(payload);
-    }
+    saveMutation.mutate(payload);
   }
 
-  const isSubmitting = createMutation.isPending || updateMutation.isPending;
-  const isFormDisabled = isProfileLoading || isSubmitting;
+  const isFormDisabled = isProfileLoading || saveMutation.isPending;
   const hasFormError = avatarUrlError !== null;
 
   if (isProfileLoading) {
     return (
       <Container maxWidth="md">
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "50vh",
-          }}
-        >
-          <CircularProgress />
-        </Box>
+        <Stack spacing={3}>
+          <Card>
+            <CardContent>
+              <Skeleton
+                variant="text"
+                width="40%"
+                height={32}
+                animation="wave"
+                sx={{ mb: 1 }}
+              />
+              <Stack spacing={3}>
+                <Skeleton variant="rectangular" height={56} animation="wave" />
+                <Skeleton variant="rectangular" height={56} animation="wave" />
+                <Skeleton variant="rectangular" height={40} animation="wave" />
+              </Stack>
+            </CardContent>
+          </Card>
+        </Stack>
       </Container>
     );
   }
@@ -132,29 +136,26 @@ export default function ProfileEditPage() {
         <Card>
           <CardContent>
             <Typography variant="h5" gutterBottom>
-              Edit Profile
-            </Typography>
-            <Typography variant="body2" color="text.secondary" mb={3}>
-              Update your display name and avatar URL.
+              {m.title}
             </Typography>
 
             <Box component="form" onSubmit={handleSubmit}>
               <Stack spacing={3}>
                 <TextField
-                  label="Display Name"
+                  label={m.displayNameLabel}
                   value={displayName}
                   onChange={handleDisplayNameChange}
-                  placeholder="Enter your display name"
+                  placeholder={m.displayNamePlaceholder}
                   fullWidth
                   disabled={isFormDisabled}
                   InputLabelProps={{ shrink: true, required: false }}
                 />
 
                 <TextField
-                  label="Avatar URL"
+                  label={m.avatarUrlLabel}
                   value={avatarURL}
                   onChange={handleAvatarUrlChange}
-                  placeholder="https://example.com/avatar.jpg"
+                  placeholder={m.avatarUrlPlaceholder}
                   fullWidth
                   disabled={isFormDisabled}
                   error={hasFormError}
@@ -170,7 +171,7 @@ export default function ProfileEditPage() {
                     disabled={isFormDisabled || hasFormError}
                     fullWidth
                   >
-                    {isSubmitting ? "Saving..." : "Save"}
+                    {saveMutation.isPending ? m.submitPending : m.submitIdle}
                   </Button>
                 </Box>
               </Stack>
@@ -181,4 +182,3 @@ export default function ProfileEditPage() {
     </Container>
   );
 }
-
