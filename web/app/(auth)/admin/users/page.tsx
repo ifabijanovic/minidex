@@ -26,6 +26,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { enqueueSnackbar } from "notistack";
 import { useState } from "react";
 
+import { UpdateRolesDialog } from "@/app/(auth)/admin/users/components/UpdateRolesDialog";
 import { useUsers } from "@/app/(auth)/admin/users/hooks/use-users";
 import { usersManagementMessages as m } from "@/app/(auth)/admin/users/messages";
 import { type UserRole } from "@/app/context/user-context";
@@ -44,6 +45,11 @@ export default function UsersManagementPage() {
     element: HTMLElement;
     userId: string;
     isActive: boolean;
+  } | null>(null);
+  const [updateRolesDialog, setUpdateRolesDialog] = useState<{
+    open: boolean;
+    userId: string;
+    currentRoles: UserRole[];
   } | null>(null);
 
   const { data, isLoading } = useUsers({
@@ -87,15 +93,34 @@ export default function UsersManagementPage() {
 
   const handleUpdateRoles = () => {
     if (menuAnchor) {
-      // TODO: Implement update roles
-      console.log("Update roles for user:", menuAnchor.userId);
+      const user = users.find((u) => u.id === menuAnchor.userId);
+      if (user) {
+        setUpdateRolesDialog({
+          open: true,
+          userId: menuAnchor.userId,
+          currentRoles: user.roles,
+        });
+      }
       handleMenuClose();
+    }
+  };
+
+  const handleUpdateRolesDialogClose = () => {
+    setUpdateRolesDialog(null);
+  };
+
+  const handleUpdateRolesSave = (roles: UserRole[]) => {
+    if (updateRolesDialog) {
+      patchMutation.mutate({
+        userId: updateRolesDialog.userId,
+        roles,
+      });
     }
   };
 
   const patchMutation = useApiMutation<
     { id: string; roles: UserRole[]; isActive: boolean },
-    { userId: string; isActive: boolean }
+    { userId: string; isActive?: boolean; roles?: UserRole[] }
   >({
     method: "patch",
     path: (variables) => `/v1/users/${variables.userId}`,
@@ -103,10 +128,16 @@ export default function UsersManagementPage() {
       await queryClient.invalidateQueries({
         queryKey: ["users"],
       });
-      enqueueSnackbar(
-        variables.isActive ? m.activateSuccess : m.deactivateSuccess,
-        { variant: "success" },
-      );
+      if (variables.isActive !== undefined) {
+        enqueueSnackbar(
+          variables.isActive ? m.activateSuccess : m.deactivateSuccess,
+          { variant: "success" },
+        );
+      }
+      if (variables.roles !== undefined) {
+        enqueueSnackbar(m.updateRolesSuccess, { variant: "success" });
+        setUpdateRolesDialog(null);
+      }
       handleMenuClose();
     },
   });
@@ -290,6 +321,17 @@ export default function UsersManagementPage() {
             {m.invalidateSessions}
           </MenuItem>
         </Menu>
+
+        {updateRolesDialog && (
+          <UpdateRolesDialog
+            open={updateRolesDialog.open}
+            userId={updateRolesDialog.userId}
+            currentRoles={updateRolesDialog.currentRoles}
+            onClose={handleUpdateRolesDialogClose}
+            onSave={handleUpdateRolesSave}
+            isPending={patchMutation.isPending}
+          />
+        )}
       </Stack>
     </Container>
   );
