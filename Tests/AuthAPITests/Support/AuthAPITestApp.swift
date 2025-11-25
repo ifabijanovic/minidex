@@ -24,7 +24,7 @@ enum AuthAPITestApp {
                     rolesConverter: .test,
                 )
             )
-            try context.app.register(collection: UserController())
+            try context.app.register(collection: UserController(rolesConverter: .test))
             try await runTest(context.app, context.redis)
         }
     }

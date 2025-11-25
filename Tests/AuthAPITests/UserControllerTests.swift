@@ -155,7 +155,7 @@ struct UserControllerTests {
                 "v1/users/\(targetID)",
                 beforeRequest: { req in
                     AuthAPITestHelpers.authorize(&req, token: adminToken.accessToken)
-                    try req.content.encode(PatchDTO(roles: .admin, isActive: nil))
+                    try req.content.encode(PatchDTO(roles: ["admin"], isActive: nil))
                 },
                 afterResponse: { res async throws in
                     #expect(res.status == .ok)
