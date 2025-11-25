@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Alert,
   Box,
   Button,
   Link as MuiLink,
@@ -77,6 +78,11 @@ function RegisterForm() {
   const trimmedPassword = password.trim();
   const trimmedConfirmPassword = confirmPassword.trim();
 
+  const passwordTooShort =
+    trimmedPassword.length > 0 && trimmedPassword.length < 8;
+  const confirmPasswordTooShort =
+    trimmedConfirmPassword.length > 0 && trimmedConfirmPassword.length < 8;
+
   const passwordsMatch =
     trimmedPassword.length > 0 &&
     trimmedConfirmPassword.length > 0 &&
@@ -88,7 +94,17 @@ function RegisterForm() {
     trimmedConfirmPassword.length >= 8 &&
     passwordsMatch;
 
-  const confirmPasswordError = confirmPassword.length > 0 && !passwordsMatch;
+  const passwordValidationMessage = (() => {
+    if (passwordTooShort || confirmPasswordTooShort) {
+      return m.passwordTooShort;
+    }
+    if (confirmPassword.length > 0 && !passwordsMatch) {
+      return m.passwordMismatch;
+    }
+    return undefined;
+  })();
+
+  const confirmPasswordError = Boolean(passwordValidationMessage);
 
   const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (registerMutation.isError) registerMutation.reset();
@@ -127,6 +143,12 @@ function RegisterForm() {
           </Typography>
         </Box>
 
+        <Alert severity="warning">
+          MiniDex is still in its early stages. I’m actively restructuring data
+          and testing features, so your account and any saved data may be reset
+          or deleted during development.
+        </Alert>
+
         <TextField
           label={m.usernameLabel}
           value={username}
@@ -146,6 +168,7 @@ function RegisterForm() {
           required
           fullWidth
           InputLabelProps={{ shrink: true, required: false }}
+          error={passwordTooShort}
         />
 
         <PasswordField
@@ -157,7 +180,7 @@ function RegisterForm() {
           fullWidth
           InputLabelProps={{ shrink: true, required: false }}
           error={confirmPasswordError}
-          helperText={confirmPasswordError ? "Passwords must match" : undefined}
+          helperText={passwordValidationMessage}
         />
 
         <Button

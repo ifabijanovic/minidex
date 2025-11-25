@@ -11,6 +11,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { enqueueSnackbar } from "notistack";
 import { FormEvent, Suspense, useState } from "react";
 
 import { AuthCard } from "@/app/components/AuthCard";
@@ -18,6 +19,8 @@ import { PasswordField } from "@/app/components/PasswordField";
 import { useCurrentUser, type UserRole } from "@/app/context/user-context";
 import { loginMessages as m } from "@/app/login/messages";
 import { normalizeReturnUrl } from "@/app/utils/normalize-return-url";
+import { ApiError } from "@/lib/api-client";
+import { getFriendlyErrorMessage } from "@/lib/errors";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 
 type LoginResponse = {
@@ -59,6 +62,7 @@ function LoginForm() {
   const loginMutation = useApiMutation<LoginResponse, LoginPayload>({
     method: "post",
     path: "/auth/login",
+    suppressToast: true,
     onSuccess: async (data) => {
       if (data.userId) {
         setUser({
@@ -68,6 +72,13 @@ function LoginForm() {
       }
       router.replace(redirectTo);
       router.refresh();
+    },
+    onError: (error) => {
+      const message =
+        error instanceof ApiError && error.status === 401
+          ? m.invalidCredentials
+          : getFriendlyErrorMessage(error);
+      enqueueSnackbar(message, { variant: "error" });
     },
   });
 
@@ -112,28 +123,15 @@ function LoginForm() {
           InputLabelProps={{ shrink: true, required: false }}
         />
 
-        <Box>
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={2}
-          >
-            <Box />
-            <MuiLink component={Link} href="/forgot-password" underline="hover">
-              {m.forgotPassword}
-            </MuiLink>
-          </Box>
-          <PasswordField
-            label={m.passwordLabel}
-            value={password}
-            onChange={handlePasswordChange}
-            autoComplete="current-password"
-            required
-            fullWidth
-            InputLabelProps={{ shrink: true, required: false }}
-          />
-        </Box>
+        <PasswordField
+          label={m.passwordLabel}
+          value={password}
+          onChange={handlePasswordChange}
+          autoComplete="current-password"
+          required
+          fullWidth
+          InputLabelProps={{ shrink: true, required: false }}
+        />
 
         <Button
           type="submit"

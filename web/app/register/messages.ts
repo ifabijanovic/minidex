@@ -7,4 +7,6 @@ export const registerMessages = {
   confirmPasswordLabel: "Confirm password",
   submitIdle: "Create account",
   submitPending: "Creating...",
+  passwordTooShort: "Password must be at least 8 characters.",
+  passwordMismatch: "Passwords must match.",
 };

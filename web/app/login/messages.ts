@@ -7,4 +7,5 @@ export const loginMessages = {
   forgotPassword: "Forgot password?",
   submitIdle: "Sign in",
   submitPending: "Signing in...",
+  invalidCredentials: "Invalid username or password.",
 };
