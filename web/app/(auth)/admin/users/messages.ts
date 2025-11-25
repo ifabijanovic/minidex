@@ -7,4 +7,9 @@ export const usersManagementMessages = {
   inactive: "Inactive",
   noUsers: "No users found",
   loading: "Loading users...",
+  actions: "Actions",
+  updateRoles: "Update Roles",
+  activate: "Activate",
+  deactivate: "Deactivate",
+  revokeAccess: "Invalidate sessions",
 };

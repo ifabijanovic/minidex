@@ -1,10 +1,14 @@
 "use client";
 
+import MoreVert from "@mui/icons-material/MoreVert";
 import {
   Box,
   Card,
   CardContent,
   Container,
+  IconButton,
+  Menu,
+  MenuItem,
   Paper,
   Skeleton,
   Stack,
@@ -31,6 +35,11 @@ export default function UsersManagementPage() {
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [sortField, setSortField] = useState<SortField>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [menuAnchor, setMenuAnchor] = useState<{
+    element: HTMLElement;
+    userId: string;
+    isActive: boolean;
+  } | null>(null);
 
   const { data, isLoading } = useUsers({
     page,
@@ -56,6 +65,50 @@ export default function UsersManagementPage() {
     } else {
       setSortField(field);
       setSortOrder("asc");
+    }
+  };
+
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLElement>,
+    userId: string,
+    isActive: boolean,
+  ) => {
+    setMenuAnchor({ element: event.currentTarget, userId, isActive });
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+  };
+
+  const handleUpdateRoles = () => {
+    if (menuAnchor) {
+      // TODO: Implement update roles
+      console.log("Update roles for user:", menuAnchor.userId);
+      handleMenuClose();
+    }
+  };
+
+  const handleActivate = () => {
+    if (menuAnchor) {
+      // TODO: Implement activate
+      console.log("Activate user:", menuAnchor.userId);
+      handleMenuClose();
+    }
+  };
+
+  const handleDeactivate = () => {
+    if (menuAnchor) {
+      // TODO: Implement deactivate
+      console.log("Deactivate user:", menuAnchor.userId);
+      handleMenuClose();
+    }
+  };
+
+  const handleRevokeAccess = () => {
+    if (menuAnchor) {
+      // TODO: Implement revoke access
+      console.log("Revoke access for user:", menuAnchor.userId);
+      handleMenuClose();
     }
   };
 
@@ -104,6 +157,11 @@ export default function UsersManagementPage() {
                         </Typography>
                       </TableSortLabel>
                     </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="subtitle2" fontWeight={600}>
+                        {m.actions}
+                      </Typography>
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -119,11 +177,14 @@ export default function UsersManagementPage() {
                         <TableCell>
                           <Skeleton variant="text" width="100%" />
                         </TableCell>
+                        <TableCell>
+                          <Skeleton variant="circular" width={32} height={32} />
+                        </TableCell>
                       </TableRow>
                     ))
                   ) : users.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={3} align="center">
+                      <TableCell colSpan={4} align="center">
                         <Box sx={{ py: 4 }}>
                           <Typography variant="body2" color="text.secondary">
                             {m.noUsers}
@@ -151,6 +212,16 @@ export default function UsersManagementPage() {
                             {user.isActive ? m.active : m.inactive}
                           </Typography>
                         </TableCell>
+                        <TableCell align="right">
+                          <IconButton
+                            size="small"
+                            onClick={(e) =>
+                              handleMenuOpen(e, user.id, user.isActive)
+                            }
+                          >
+                            <MoreVert fontSize="small" />
+                          </IconButton>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
@@ -169,6 +240,22 @@ export default function UsersManagementPage() {
             />
           </CardContent>
         </Card>
+
+        <Menu
+          anchorEl={menuAnchor?.element ?? null}
+          open={Boolean(menuAnchor)}
+          onClose={handleMenuClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          transformOrigin={{ vertical: "top", horizontal: "right" }}
+        >
+          <MenuItem onClick={handleUpdateRoles}>{m.updateRoles}</MenuItem>
+          {menuAnchor?.isActive ? (
+            <MenuItem onClick={handleDeactivate}>{m.deactivate}</MenuItem>
+          ) : (
+            <MenuItem onClick={handleActivate}>{m.activate}</MenuItem>
+          )}
+          <MenuItem onClick={handleRevokeAccess}>{m.revokeAccess}</MenuItem>
+        </Menu>
       </Stack>
     </Container>
   );
