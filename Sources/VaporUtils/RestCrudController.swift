@@ -6,6 +6,37 @@ import Vapor
 import FluentSQLiteDriver
 #endif
 
+public enum PagedResponseSort: String, Content {
+    case ascending = "asc"
+    case descending = "desc"
+
+    var dbValue: DatabaseQuery.Sort.Direction {
+        switch self {
+        case .ascending: .ascending
+        case .descending: .descending
+        }
+    }
+}
+
+public struct ListQueryParams: Content {
+    public var q: String?
+    public var page: Int?
+    public var limit: Int?
+    public var sort: String?
+    public var order: PagedResponseSort?
+
+    static let defaultLimit = 25
+}
+
+public struct PagedResponse<T: Content>: Content {
+    public var data: [T]
+    public var page: Int
+    public var limit: Int
+    public var sort: String?
+    public var order: PagedResponseSort?
+    public var query: String?
+}
+
 public protocol RestCrudController: RouteCollection, Sendable {
     associatedtype DBModel: Model where DBModel.IDValue == UUID
     associatedtype DTO: Content
@@ -14,9 +45,12 @@ public protocol RestCrudController: RouteCollection, Sendable {
 
     func findOne(req: Request) async throws -> DBModel?
     func toDTO(_ dbModel: DBModel) throws -> DTO
+    func indexFilter(_ q: String, query: QueryBuilder<DBModel>) -> QueryBuilder<DBModel>?
 }
 
 extension RestCrudController {
+    public var defaultLimit: Int { 25 }
+
     public func findOne(req: Request) async throws -> DBModel? {
         try await DBModel.find(req.parameters.require("id"), on: req.db)
     }
@@ -26,11 +60,44 @@ extension RestCrudController {
         return model
     }
 
-    public func index(req: Request) async throws -> [DTO] {
-        try await DBModel
-            .query(on: req.db)
-            .all()
-            .map(toDTO)
+    public func indexFilter(_ q: String, query: QueryBuilder<DBModel>) -> QueryBuilder<DBModel>? {
+        nil
+    }
+
+    public func index(req: Request) async throws -> PagedResponse<DTO> {
+        let params = try req.query.decode(ListQueryParams.self)
+
+        var query = DBModel.query(on: req.db)
+
+        // Pagination
+        let page = params.page ?? 0
+        let limit = min(
+            params.limit ?? ListQueryParams.defaultLimit,
+            req.db.context.pageSizeLimit ?? ListQueryParams.defaultLimit,
+        )
+        query = query.offset(page * limit).limit(limit)
+
+        // Sort
+        if let sort = params.sort {
+            let order = params.order ?? .ascending
+            query = query.sort(.string(sort), order.dbValue)
+        }
+
+        // Search
+        if let filteredQuery = params.q.flatMap({ indexFilter($0, query: query) }) {
+            query = filteredQuery
+        }
+
+        let data = try await query.all().map(toDTO)
+
+        return .init(
+            data: data,
+            page: page,
+            limit: limit,
+            sort: params.sort,
+            order: params.sort != nil ? (params.order ?? .ascending) : nil,
+            query: params.q,
+        )
     }
 
     public func get(req: Request) async throws -> DTO {

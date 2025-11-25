@@ -27,9 +27,13 @@ struct GameSystemController: RestCrudController {
         )
     }
 
+    func indexFilter(_ q: String, query: QueryBuilder<DBGameSystem>) -> QueryBuilder<DBGameSystem>? {
+        query.filter(\.$name ~~ q) // contains
+    }
+
     func boot(routes: any RoutesBuilder) throws {
         let root = routes
-            .grouped("v1", "gamesystem")
+            .grouped("v1", "gamesystems")
             .grouped(TokenAuthenticator())
             .grouped(AuthUser.guardMiddleware())
             .grouped(RequireAnyRolesMiddleware(roles: [.admin, .cataloguer]))
