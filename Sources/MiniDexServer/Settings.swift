@@ -21,6 +21,10 @@ enum Settings {
         static var hostname: String? { Environment.get("REDIS_HOST") }
         static var port: Int? { Environment.get("REDIS_PORT").flatMap(Int.init(_:)) }
     }
+
+    enum Slack {
+        static var botToken: String? { Environment.get("SLACK_BOT_TOKEN") }
+    }
 }
 
 struct InvalidDBSettingsError: Error, CustomStringConvertible, CustomNSError {

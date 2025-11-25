@@ -7,7 +7,6 @@ let package = Package(
        .macOS(.v13)
     ],
     products: [
-        .library(name: "AuthDB", targets: ["AuthDB"]),
         .library(name: "AuthAPI", targets: ["AuthAPI"]),
         .library(name: "MiniDexDB", targets: ["MiniDexDB"]),
     ],
@@ -59,12 +58,20 @@ let package = Package(
             dependencies: [
                 .target(name: "AuthAPI"),
                 .target(name: "MiniDexDB"),
+                .target(name: "SlackIntegration"),
                 .target(name: "VaporUtils"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
                 .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "NIOPosix", package: "swift-nio"),
                 .product(name: "Redis", package: "redis"),
+                .product(name: "Vapor", package: "vapor"),
+            ],
+            swiftSettings: swiftSettings,
+        ),
+        .target(
+            name: "SlackIntegration",
+            dependencies: [
                 .product(name: "Vapor", package: "vapor"),
             ],
             swiftSettings: swiftSettings,
