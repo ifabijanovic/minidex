@@ -11,9 +11,11 @@ import {
 import { api } from "@/lib/api-client";
 import { ApiError } from "@/lib/api-client";
 
+export type UserRole = "admin" | "hobbyist" | "cataloguer";
+
 export type User = {
   userId: string;
-  roles: string[];
+  roles: UserRole[];
 };
 
 type UserContextType = {
@@ -23,7 +25,7 @@ type UserContextType = {
 
 type MeResponse = {
   userId: string;
-  roles: string[];
+  roles: UserRole[];
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
