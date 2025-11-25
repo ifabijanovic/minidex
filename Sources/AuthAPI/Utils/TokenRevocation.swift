@@ -38,16 +38,16 @@ enum TokenRevocation {
             .filter(\.$user.$id == userID)
             .all()
 
+        for token in allTokens {
+            let hashed = token.value.base64URLEncodedString()
+            await redis.invalidate(hashedAccessToken: hashed, logger: logger)
+        }
+
         try await DBUserToken
             .query(on: db)
             .filter(\.$user.$id == userID)
             .filter(\.$isRevoked == false)
             .set(\.$isRevoked, to: true)
             .update()
-
-        for token in allTokens {
-            let hashed = token.value.base64URLEncodedString()
-            await redis.invalidate(hashedAccessToken: hashed, logger: logger)
-        }
     }
 }

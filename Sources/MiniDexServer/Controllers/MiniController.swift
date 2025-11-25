@@ -31,9 +31,17 @@ struct MiniController: RestCrudController {
         )
     }
 
+    func indexFilter(_ q: String, query: QueryBuilder<DBMini>) -> QueryBuilder<DBMini>? {
+        query.filter(\.$name ~~ q) // contains
+    }
+
+    var sortColumnMapping = [
+        "name": "name",
+    ]
+
     func boot(routes: any RoutesBuilder) throws {
         let root = routes
-            .grouped("v1", "mini")
+            .grouped("v1", "minis")
             .grouped(TokenAuthenticator())
             .grouped(AuthUser.guardMiddleware())
             .grouped(RequireAnyRolesMiddleware(roles: [.admin, .cataloguer]))
