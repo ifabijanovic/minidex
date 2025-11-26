@@ -8,7 +8,8 @@ extension RedisClient {
         logger: Logger,
     ) async -> AuthUser? {
         do {
-            return try await get(TokenClient.userCacheKey(accessToken: accessToken), asJSON: AuthUser.self)
+            let key = TokenClient.userCacheKey(accessToken: accessToken)
+            return try await get(RedisKey(key), asJSON: AuthUser.self)
         } catch {
             logger.error("User cache lookup in Redis failed: \(error)")
             return nil
@@ -31,13 +32,13 @@ extension RedisClient {
         do {
             // Cache user in Redis for fast lookup
             try await setex(
-                TokenClient.userCacheKey(accessToken: accessToken),
+                RedisKey(TokenClient.userCacheKey(accessToken: accessToken)),
                 toJSON: user,
                 expirationInSeconds: ttl
             )
             // Cache raw token for cache invalidation
             try await setex(
-                TokenClient.tokenCacheKey(hashedAccessToken: hashedAccessToken),
+                RedisKey(TokenClient.tokenCacheKey(hashedAccessToken: hashedAccessToken)),
                 toJSON: accessToken,
                 expirationInSeconds: ttl
             )
@@ -55,14 +56,14 @@ extension RedisClient {
     func invalidate(hashedAccessToken: String, logger: Logger) async {
         do {
             guard let accessToken = try await get(
-                TokenClient.tokenCacheKey(hashedAccessToken: hashedAccessToken),
+                RedisKey(TokenClient.tokenCacheKey(hashedAccessToken: hashedAccessToken)),
                 asJSON: String.self
             ) else {
                 logger.debug("No auth cache to invalidate")
                 return
             }
-            _ = try await delete(TokenClient.userCacheKey(accessToken: accessToken)).get()
-            _ = try await delete(TokenClient.tokenCacheKey(hashedAccessToken: hashedAccessToken)).get()
+            _ = try await delete(RedisKey(TokenClient.userCacheKey(accessToken: accessToken))).get()
+            _ = try await delete(RedisKey(TokenClient.tokenCacheKey(hashedAccessToken: hashedAccessToken))).get()
             logger.debug("Auth cache invalidated")
         } catch {
             logger.error("Auth cache invalidation from Redis failed: \(error)")
