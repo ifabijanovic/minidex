@@ -248,10 +248,26 @@ private final class InMemoryRedisClient: RedisClient {
 #if canImport(Testing)
 import Testing
 extension InMemoryRedisDriver {
-    public func assertCleared(key: RedisKey) {
+    @discardableResult
+    public func assertAdded<T: Decodable>(
+        key: String,
+        as type: T.Type,
+        ttl: Int,
+    ) throws -> T {
         let snapshot = self.snapshot()
-        #expect(snapshot.entries[key] == nil)
-        let keyDeleted = snapshot.deleteCalls.contains { $0.contains(key) }
+        let redisKey = RedisKey(key)
+        let data = try #require(snapshot.entries[redisKey]?.data)
+        let decoded = try JSONDecoder().decode(type, from: data)
+        let cacheTtl = try #require(snapshot.setexCalls.filter({ $0.key == redisKey }).first?.ttl)
+        #expect(cacheTtl == ttl)
+        return decoded
+    }
+
+    public func assertCleared(key: String) {
+        let snapshot = self.snapshot()
+        let redisKey = RedisKey(key)
+        #expect(snapshot.entries[redisKey] == nil)
+        let keyDeleted = snapshot.deleteCalls.contains { $0.contains(redisKey) }
         #expect(keyDeleted)
     }
 }

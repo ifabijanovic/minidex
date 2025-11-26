@@ -5,13 +5,8 @@ import Vapor
 extension TokenClient {
     public static func live(req: Request) -> TokenClient {
         .init(
-            isTokenValid: { !$0.isRevoked && $0.expiresAt.timeIntervalSinceNow > 0 },
-            hashToken: { token in
-                token
-                    .base64URLDecodedData()
-                    .map(SHA256.hash(data:))
-                    .map(Data.init(_:))
-            },
+            isTokenValid: Self.isTokenValid(token:),
+            hashToken: Self.hash(token:),
             revoke: { token, db in
                 token.isRevoked = true
                 try await token.save(on: db ?? req.db)
@@ -48,5 +43,24 @@ extension TokenClient {
                 req.logger.debug("Revoked all active tokens for userID: \(userID)")
             }
         )
+    }
+
+    static func userCacheKey(accessToken: String) -> String {
+        "token:\(accessToken)"
+    }
+
+    static func tokenCacheKey(hashedAccessToken: String) -> String {
+        "token_hash:\(hashedAccessToken)"
+    }
+
+    static func isTokenValid(token: DBUserToken) -> Bool {
+        !token.isRevoked && token.expiresAt.timeIntervalSinceNow > 0
+    }
+
+    static func hash(token: String) -> Data? {
+        token
+            .base64URLDecodedData()
+            .map(SHA256.hash(data:))
+            .map(Data.init(_:))
     }
 }

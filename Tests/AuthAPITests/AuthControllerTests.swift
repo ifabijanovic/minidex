@@ -23,28 +23,16 @@ struct AuthControllerTests {
 
             let login = try await AuthenticatedTestContext.login(app: app, username: "ash", password: "pikachu")
             #expect(login.userId == userID)
+            #expect(login.roles == ["admin"])
 
             let tokens = try await DBUserToken.query(on: app.db).all()
             #expect(tokens.count == 1)
 
-            let snapshot = redis.snapshot()
-            let userKey = RedisKey("token:\(login.accessToken)")
-            guard let hash = TokenAuthenticator.hashAccessToken(login.accessToken) else {
-                Issue.record("Failed to hash access token")
-                return
-            }
-            let hashedKey = RedisKey("token_hash:\(hash.base64URLEncodedString())")
-
-            let cachedUserData = try #require(snapshot.entries[userKey]?.data)
-            let cachedUser = try JSONDecoder().decode(AuthUser.self, from: cachedUserData)
-            #expect(cachedUser.id == user.id)
-
-            #expect(snapshot.entries[hashedKey]?.data != nil)
-
-            let ttl = snapshot.setexCalls.filter { $0.key == userKey }.first?.ttl
-            #expect(ttl == Int(AuthAPITestApp.defaultExpiration))
-
-            #expect(login.roles == ["admin"])
+            try redis.assertAuthCacheSet(
+                accessToken: login.accessToken,
+                userID: userID,
+                ttl: Int(AuthAPITestApp.defaultExpiration),
+            )
         }
     }
 
@@ -302,6 +290,8 @@ struct AuthControllerTests {
                 throw Abort(.internalServerError)
             }
 
+            #expect(response.roles == ["tester"])
+
             let credential = try await DBCredential.query(on: app.db)
                 .filter(\.$identifier == "bonnie")
                 .first()
@@ -313,24 +303,11 @@ struct AuthControllerTests {
             let tokens = try await DBUserToken.query(on: app.db).all()
             #expect(tokens.count == 1)
 
-            let snapshot = redis.snapshot()
-            let userKey = RedisKey("token:\(response.accessToken)")
-            guard let hash = TokenAuthenticator.hashAccessToken(response.accessToken) else {
-                Issue.record("Failed to hash access token")
-                return
-            }
-            let hashedKey = RedisKey("token_hash:\(hash.base64URLEncodedString())")
-
-            let cachedUserData = try #require(snapshot.entries[userKey]?.data)
-            let cachedUser = try JSONDecoder().decode(AuthUser.self, from: cachedUserData)
-            #expect(cachedUser.id == response.userId)
-
-            #expect(snapshot.entries[hashedKey]?.data != nil)
-
-            let ttl = snapshot.setexCalls.filter { $0.key == userKey }.first?.ttl
-            #expect(ttl == response.expiresIn)
-
-            #expect(response.roles == ["tester"])
+            try redis.assertAuthCacheSet(
+                accessToken: response.accessToken,
+                userID: response.userId,
+                ttl: response.expiresIn,
+            )
         }
     }
 }
