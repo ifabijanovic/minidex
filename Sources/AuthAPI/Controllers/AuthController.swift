@@ -107,7 +107,7 @@ public struct AuthController: RouteCollection, Sendable {
             throw Abort(.notFound)
         }
         
-        try await TokenRevocation.revoke(token, on: req.db, redis: req.redisClient, logger: req.logger)
+        try await req.tokenClient.revoke(token: token)
         return .ok
     }
 
