@@ -4,6 +4,18 @@ import Vapor
 import VaporRedisUtils
 
 public struct TokenClient: Sendable {
+    public struct Token: Sendable {
+        /// Base64 encoded raw access token that is returned to the API user
+        public let rawEncoded: String
+        /// Hashed binary access token that is stored in DB
+        public let hashed: Data
+        /// Base64 encoded hashed access token used for cache invalidation
+        public let hashedEncoded: String
+    }
+
+    /// Generate a new random token
+    public var generateToken: @Sendable (Int) -> Token
+
     /// Checks if a token is valid (not revoked and not expired)
     public var isTokenValid: @Sendable (DBUserToken) -> Bool
 

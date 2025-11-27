@@ -259,7 +259,7 @@ extension InMemoryRedisDriver {
         let data = try #require(snapshot.entries[redisKey]?.data)
         let decoded = try JSONDecoder().decode(type, from: data)
         let cacheTtl = try #require(snapshot.setexCalls.filter({ $0.key == redisKey }).first?.ttl)
-        #expect(cacheTtl == ttl)
+        #expect(ttl - cacheTtl < 2) // small time shift can occur while running tests
         return decoded
     }
 
