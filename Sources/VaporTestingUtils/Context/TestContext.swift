@@ -1,3 +1,4 @@
+#if canImport(Testing)
 import Fluent
 import FluentSQLiteDriver
 import Foundation
@@ -53,3 +54,4 @@ public struct TestContext {
         try await app.asyncShutdown()
     }
 }
+#endif

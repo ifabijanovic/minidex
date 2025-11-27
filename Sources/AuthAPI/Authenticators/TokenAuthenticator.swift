@@ -14,7 +14,7 @@ public struct TokenAuthenticator: AsyncBearerAuthenticator {
             // Check token state even on cache hit
             if let tokenID = cached.tokenID,
                let token = try await DBUserToken.find(tokenID, on: request.db),
-               isTokenValid(token)
+               request.tokenClient.isTokenValid(token)
             {
                 request.logger.debug("Cached token valid for userID: \(cached.id)")
                 request.auth.login(cached)
@@ -23,7 +23,7 @@ public struct TokenAuthenticator: AsyncBearerAuthenticator {
         }
 
         request.logger.debug("Token auth cache miss")
-        guard let hash = Self.hashAccessToken(bearer.token) else { return }
+        guard let hash = request.tokenClient.hashToken(bearer.token) else { return }
 
         let token = try await DBUserToken
             .query(on: request.db)
@@ -31,7 +31,7 @@ public struct TokenAuthenticator: AsyncBearerAuthenticator {
             .filter(\.$value == hash)
             .first()
 
-        if let token, isTokenValid(token) {
+        if let token, request.tokenClient.isTokenValid(token) {
             let dbUser = try token.joined(DBUser.self)
             let user = try AuthUser(
                 id: dbUser.requireID(),
@@ -52,18 +52,5 @@ public struct TokenAuthenticator: AsyncBearerAuthenticator {
         } else {
             request.logger.debug("Token auth failed")
         }
-    }
-
-    /// Checks if a token is valid (not revoked and not expired)
-    private func isTokenValid(_ token: DBUserToken) -> Bool {
-        !token.isRevoked && token.expiresAt.timeIntervalSinceNow > 0
-    }
-
-    /// Hashes an access token string into its database-storable form
-    static func hashAccessToken(_ token: String) -> Data? {
-        token
-            .base64URLDecodedData()
-            .map(SHA256.hash(data:))
-            .map(Data.init(_:))
     }
 }

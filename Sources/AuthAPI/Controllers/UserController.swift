@@ -1,6 +1,5 @@
 import AuthDB
 import Fluent
-import Logging
 import Redis
 import Vapor
 import VaporRedisUtils
@@ -88,14 +87,8 @@ public struct UserController: RestCrudController {
             req.logger.debug("User access changed, revoking tokens...")
             try await req.db.transaction { db in
                 try await dbModel.save(on: db)
-                try await TokenRevocation.revokeAllActiveTokens(
-                    userID: userID,
-                    db: db,
-                    redis: req.redisClient,
-                    logger: req.logger
-                )
+                try await req.tokenClient.revokeAllActiveTokens(userID: userID, db: db)
             }
-            req.logger.debug("Revoked tokens for userID: \(userID)")
         } else {
             try await dbModel.save(on: req.db)
         }
@@ -105,13 +98,7 @@ public struct UserController: RestCrudController {
 
     func invalidateSessions(req: Request) async throws -> HTTPStatus {
         let userID = try req.parameters.require("id", as: UUID.self)
-        try await TokenRevocation.revokeAllActiveTokens(
-            userID: userID,
-            db: req.db,
-            redis: req.redisClient,
-            logger: req.logger
-        )
-        req.logger.debug("Revoked all active tokens for userID: \(userID)")
+        try await req.tokenClient.revokeAllActiveTokens(userID: userID)
         return .ok
     }
 }

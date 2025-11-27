@@ -1,3 +1,4 @@
+#if canImport(Testing)
 import AuthAPI
 import AuthDB
 import Fluent
@@ -25,6 +26,7 @@ public struct AuthenticatedTestContext {
         password: String = "Password!23",
         roles: Roles,
         isActive: Bool = true,
+        rolesConverter: RolesConverter = .empty,
         _ body: @Sendable (AuthenticatedTestContext) async throws -> T,
     ) async throws -> T {
         let context = try await makeAuthenticatedContext(
@@ -35,6 +37,7 @@ public struct AuthenticatedTestContext {
             password: password,
             roles: roles,
             isActive: isActive,
+            rolesConverter: rolesConverter,
         )
         do {
             let value = try await body(context)
@@ -54,6 +57,7 @@ public struct AuthenticatedTestContext {
         password: String,
         roles: Roles,
         isActive: Bool,
+        rolesConverter: RolesConverter,
     ) async throws -> AuthenticatedTestContext {
         let context = try await TestContext.makeContext(
             migrations: AuthDB.migrations + migrations,
@@ -66,7 +70,7 @@ public struct AuthenticatedTestContext {
             tokenLength: tokenLength,
             accessTokenExpiration: accessTokenExpiration,
             newUserRoles: roles,
-            rolesConverter: .empty,
+            rolesConverter: rolesConverter,
         ))
 
         let user = try await createUser(
@@ -139,10 +143,7 @@ public struct AuthenticatedTestContext {
                 response = try res.content.decode(AuthOut.self)
             }
         )
-        guard let loginResponse = response else {
-            Issue.record("Login response missing")
-            throw Abort(.internalServerError)
-        }
-        return loginResponse
+        return try #require(response)
     }
 }
+#endif

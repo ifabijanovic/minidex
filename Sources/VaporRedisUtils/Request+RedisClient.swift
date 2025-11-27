@@ -1,6 +1,7 @@
 import Redis
 import Vapor
 
+#if DEBUG
 extension Application {
     private struct RedisClientFactoryKey: StorageKey {
         typealias Value = @Sendable (Request) -> any RedisClient
@@ -22,6 +23,7 @@ extension Application {
         self.storage[RedisClientFactoryKey.self]?(request)
     }
 }
+#endif
 
 extension Request {
     /// Returns the request-scoped Redis client override if one was configured (debug builds only),

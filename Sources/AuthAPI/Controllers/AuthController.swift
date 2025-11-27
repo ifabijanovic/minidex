@@ -73,7 +73,7 @@ public struct AuthController: RouteCollection, Sendable {
             throw Abort(.forbidden, reason: "User not authorized to perform this action")
         }
 
-        let token = generateToken(length: tokenLength)
+        let token = req.tokenClient.generateToken(tokenLength)
         let userToken = try await createUserToken(
             userID: user.id,
             token: token,
@@ -107,7 +107,7 @@ public struct AuthController: RouteCollection, Sendable {
             throw Abort(.notFound)
         }
         
-        try await TokenRevocation.revoke(token, on: req.db, redis: req.redisClient, logger: req.logger)
+        try await req.tokenClient.revoke(token: token)
         return .ok
     }
 
@@ -135,7 +135,7 @@ public struct AuthController: RouteCollection, Sendable {
             throw Abort(.conflict, reason: "Username already taken")
         }
 
-        let token = generateToken(length: tokenLength)
+        let token = req.tokenClient.generateToken(tokenLength)
         let (userID, userToken) = try await req.db.transaction { db in
             let user = DBUser(roles: newUserRoles.rawValue, isActive: true)
             try await user.save(on: db)
@@ -199,7 +199,7 @@ public struct AuthController: RouteCollection, Sendable {
 
     private func createUserToken(
         userID: UUID,
-        token: Token,
+        token: TokenClient.Token,
         db: any Database,
     ) async throws -> DBUserToken {
         let token = DBUserToken(
@@ -210,30 +210,5 @@ public struct AuthController: RouteCollection, Sendable {
         )
         try await token.save(on: db)
         return token
-    }
-
-    struct Token {
-        /// Base64 encoded raw access token that is returned to the API user
-        let rawEncoded: String
-        /// Hashed binary access token that is stored in DB
-        let hashed: Data
-        /// Base64 encoded hashed access token used for cache invalidation
-        let hashedEncoded: String
-    }
-
-    private func generateToken(length: Int) -> Token {
-        var bytes = [UInt8](repeating: 0, count: length)
-        var rng = SystemRandomNumberGenerator()
-        for i in 0..<length {
-            bytes[i] = UInt8.random(in: 0...255, using: &rng)
-        }
-        let raw = Data(bytes)
-        let hashed = Data(SHA256.hash(data: raw))
-
-        return .init(
-            rawEncoded: raw.base64URLEncodedString(),
-            hashed: hashed,
-            hashedEncoded: hashed.base64URLEncodedString(),
-        )
     }
 }

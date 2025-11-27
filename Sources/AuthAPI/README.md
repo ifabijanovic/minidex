@@ -6,9 +6,6 @@ Lightweight authentication module for MiniDex built on Vapor + Fluent. Exposes r
 - user logs in via `/v1/auth/login` using Basic Authentication and gets back an access token
 - all further API calls are made using that access token via Bearer authorization
 
-## User Registration
-New users register via `/v1/auth/register` but cannot log in until an administrator activates them and assigns roles via `PATCH /v1/users/:id`.
-
 ## Redis Caching
 
 ### Design

@@ -244,3 +244,31 @@ private final class InMemoryRedisClient: RedisClient {
         eventLoop.makeFailedFuture(InMemoryRedisError.unsupportedCommand("PUNSUBSCRIBE"))
     }
 }
+
+#if canImport(Testing)
+import Testing
+extension InMemoryRedisDriver {
+    @discardableResult
+    public func assertAdded<T: Decodable>(
+        key: String,
+        as type: T.Type,
+        ttl: Int,
+    ) throws -> T {
+        let snapshot = self.snapshot()
+        let redisKey = RedisKey(key)
+        let data = try #require(snapshot.entries[redisKey]?.data)
+        let decoded = try JSONDecoder().decode(type, from: data)
+        let cacheTtl = try #require(snapshot.setexCalls.filter({ $0.key == redisKey }).first?.ttl)
+        #expect(ttl - cacheTtl < 2) // small time shift can occur while running tests
+        return decoded
+    }
+
+    public func assertCleared(key: String) {
+        let snapshot = self.snapshot()
+        let redisKey = RedisKey(key)
+        #expect(snapshot.entries[redisKey] == nil)
+        let keyDeleted = snapshot.deleteCalls.contains { $0.contains(redisKey) }
+        #expect(keyDeleted)
+    }
+}
+#endif
