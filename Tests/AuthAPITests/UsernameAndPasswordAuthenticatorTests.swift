@@ -13,7 +13,9 @@ struct UsernameAndPasswordAuthenticatorTests {
 
     @Test("authenticates valid credentials")
     func authenticatesValidCredential() async throws {
-        try await AuthAPITestApp.withApp { app, _ in
+        try await TestContext.run(migrations: AuthDB.migrations) { context in
+            let app = context.app
+
             _ = try await AuthenticatedTestContext.createUser(
                 on: app.db,
                 username: "ash",
@@ -32,7 +34,8 @@ struct UsernameAndPasswordAuthenticatorTests {
 
     @Test("fails when credential missing")
     func failsWhenCredentialMissing() async throws {
-        try await AuthAPITestApp.withApp { app, _ in
+        try await TestContext.run(migrations: AuthDB.migrations) { context in
+            let app = context.app
             let req = makeRequest(app: app)
             let basic = BasicAuthorization(username: "missing", password: "anything")
             try await authenticator.authenticate(basic: basic, for: req)
@@ -42,7 +45,9 @@ struct UsernameAndPasswordAuthenticatorTests {
 
     @Test("fails when password incorrect")
     func failsWhenPasswordIncorrect() async throws {
-        try await AuthAPITestApp.withApp { app, _ in
+        try await TestContext.run(migrations: AuthDB.migrations) { context in
+            let app = context.app
+
             _ = try await AuthenticatedTestContext.createUser(
                 on: app.db,
                 username: "misty",
