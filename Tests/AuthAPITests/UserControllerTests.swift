@@ -11,7 +11,6 @@ import VaporRedisUtils
 @Suite("UserController", .serialized)
 struct UserControllerTests {
     typealias DTO = UserController.DTO
-    typealias PostDTO = UserController.PostDTO
     typealias PatchDTO = UserController.PatchDTO
 
     @Test("patching nothing does not revoke tokens")
@@ -25,7 +24,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .PATCH,
-                "v1/users/\(context.userID)",
+                "v1/admin/users/\(context.userID)",
                 beforeRequest: { req in
                     req.headers.bearerAuthorization = .init(token: context.token)
                     try req.content.encode(PatchDTO())
@@ -59,7 +58,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .PATCH,
-                "v1/users/\(context.userID)",
+                "v1/admin/users/\(context.userID)",
                 beforeRequest: { req in
                     req.headers.bearerAuthorization = .init(token: context.token)
                     try req.content.encode(PatchDTO(roles: [], isActive: nil))
@@ -91,7 +90,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .PATCH,
-                "v1/users/\(context.userID)",
+                "v1/admin/users/\(context.userID)",
                 beforeRequest: { req in
                     req.headers.bearerAuthorization = .init(token: context.token)
                     try req.content.encode(PatchDTO(roles: nil, isActive: false))
@@ -123,7 +122,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .PATCH,
-                "v1/users/\(context.userID)",
+                "v1/admin/users/\(context.userID)",
                 beforeRequest: { req in
                     req.headers.bearerAuthorization = .init(token: context.token)
                     try req.content.encode(PatchDTO(roles: ["admin"], isActive: nil))
@@ -157,7 +156,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .PATCH,
-                "v1/users/\(context.userID)",
+                "v1/admin/users/\(context.userID)",
                 beforeRequest: { req in
                     req.headers.bearerAuthorization = .init(token: context.token)
                     try req.content.encode(PatchDTO(roles: nil, isActive: true))
@@ -209,7 +208,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .PATCH,
-                "v1/users/\(context.userID)",
+                "v1/admin/users/\(context.userID)",
                 beforeRequest: { req in
                     req.headers.bearerAuthorization = .init(token: login.accessToken)
                     try req.content.encode(PatchDTO(roles: [], isActive: nil))
@@ -243,7 +242,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .PATCH,
-                "v1/users/\(UUID().uuidString)",
+                "v1/admin/users/\(UUID().uuidString)",
                 beforeRequest: { req in
                     req.headers.bearerAuthorization = .init(token: context.token)
                     try req.content.encode(PatchDTO())
@@ -266,7 +265,7 @@ struct UserControllerTests {
 
             try await app.testing().test(
                 .POST,
-                "v1/users/\(context.userID)/invalidateSessions",
+                "v1/admin/users/\(context.userID)/invalidateSessions",
                 beforeRequest: { req in
                     req.headers.bearerAuthorization = .init(token: context.token)
                 },

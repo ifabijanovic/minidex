@@ -5,16 +5,9 @@ import Vapor
 import VaporRedisUtils
 import VaporUtils
 
-public struct UserController: RestCrudController {
-    public typealias DBModel = DBUser
-
+public struct UserController: RouteCollection, Sendable {
     public struct DTO: Content {
         public var id: UUID
-        public var roles: Set<String>
-        public var isActive: Bool
-    }
-
-    public struct PostDTO: Content {
         public var roles: Set<String>
         public var isActive: Bool
     }
@@ -30,35 +23,14 @@ public struct UserController: RestCrudController {
         self.rolesConverter = rolesConverter
     }
 
-    public func toDTO(_ dbModel: DBUser) throws -> DTO {
-        try .init(
-            id: dbModel.requireID(),
-            roles: rolesConverter.toStrings(.init(rawValue: dbModel.roles)),
-            isActive: dbModel.isActive,
-        )
-    }
-
-    public var sortColumnMapping = [
-        "roles": "roles",
-        "isActive": "is_active",
-    ]
-
     public func boot(routes: any RoutesBuilder) throws {
         let root = routes
-            .grouped("v1", "users")
+            .grouped("v1", "admin", "users")
             .grouped(TokenAuthenticator())
             .grouped(AuthUser.guardMiddleware())
             .grouped(RequireAdminMiddleware())
 
-        root.get(use: self.index)
-        root.post(use: self.create { dto, _ in
-            .init(
-                roles: rolesConverter.toRoles(dto.roles).rawValue,
-                isActive: dto.isActive
-            )
-        })
         root.group(":id") { route in
-            route.get(use: self.get)
             route.patch(use: self.update)
             route.post("invalidateSessions", use: self.invalidateSessions)
         }
@@ -81,7 +53,11 @@ public struct UserController: RestCrudController {
             dbModel.isActive = value
         }
 
-        let updated = try toDTO(dbModel)
+        let updated = try DTO(
+            id: dbModel.requireID(),
+            roles: rolesConverter.toStrings(.init(rawValue: dbModel.roles)),
+            isActive: dbModel.isActive,
+        )
 
         if userAccessChanged {
             req.logger.debug("User access changed, revoking tokens...")
