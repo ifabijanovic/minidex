@@ -29,6 +29,8 @@ import { useState } from "react";
 import { UpdateRolesDialog } from "@/app/(auth)/admin/users/components/UpdateRolesDialog";
 import { useUsers } from "@/app/(auth)/admin/users/hooks/use-users";
 import { usersManagementMessages as m } from "@/app/(auth)/admin/users/messages";
+import { UserAvatar } from "@/app/(auth)/components/UserAvatar";
+import { UuidPreview } from "@/app/components/UuidPreview";
 import { type UserRole } from "@/app/context/user-context";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 
@@ -116,7 +118,8 @@ export default function UsersManagementPage() {
 
   const invalidateSessionsMutation = useApiMutation<void, { userId: string }>({
     method: "post",
-    path: (variables) => `/v1/admin/users/${variables.userId}/invalidateSessions`,
+    path: (variables) =>
+      `/v1/admin/users/${variables.userId}/invalidateSessions`,
     onSuccess: async () => {
       enqueueSnackbar(m.invalidateSessionsSuccess, { variant: "success" });
       handleMenuClose();
@@ -197,6 +200,16 @@ export default function UsersManagementPage() {
                       </Typography>
                     </TableCell>
                     <TableCell>
+                      <Typography variant="subtitle2" fontWeight={600}>
+                        {m.avatar}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="subtitle2" fontWeight={600}>
+                        {m.displayName}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
                       <TableSortLabel
                         active={sortField === "roles"}
                         direction={sortField === "roles" ? sortOrder : "asc"}
@@ -218,6 +231,11 @@ export default function UsersManagementPage() {
                         </Typography>
                       </TableSortLabel>
                     </TableCell>
+                    <TableCell>
+                      <Typography variant="subtitle2" fontWeight={600}>
+                        {m.profileID}
+                      </Typography>
+                    </TableCell>
                     <TableCell align="right">
                       <Typography variant="subtitle2" fontWeight={600}>
                         {m.actions}
@@ -229,6 +247,15 @@ export default function UsersManagementPage() {
                   {isLoading ? (
                     Array.from({ length: rowsPerPage }).map((_, index) => (
                       <TableRow key={index}>
+                        <TableCell>
+                          <Skeleton variant="text" width="100%" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton variant="circular" width={40} height={40} />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton variant="text" width="100%" />
+                        </TableCell>
                         <TableCell>
                           <Skeleton variant="text" width="100%" />
                         </TableCell>
@@ -245,7 +272,7 @@ export default function UsersManagementPage() {
                     ))
                   ) : users.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} align="center">
+                      <TableCell colSpan={7} align="center">
                         <Box sx={{ py: 4 }}>
                           <Typography variant="body2" color="text.secondary">
                             {m.noUsers}
@@ -257,8 +284,18 @@ export default function UsersManagementPage() {
                     users.map((user) => (
                       <TableRow key={user.userID} hover>
                         <TableCell>
-                          <Typography variant="body2" fontFamily="monospace">
-                            {user.userID}
+                          <UuidPreview id={user.userID} />
+                        </TableCell>
+                        <TableCell>
+                          <UserAvatar
+                            displayName={user.displayName}
+                            avatarURL={user.avatarURL}
+                            isLoading={isLoading}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">
+                            {user.displayName ?? "—"}
                           </Typography>
                         </TableCell>
                         <TableCell>
@@ -272,6 +309,9 @@ export default function UsersManagementPage() {
                           <Typography variant="body2">
                             {user.isActive ? m.active : m.inactive}
                           </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <UuidPreview id={user.profileID} />
                         </TableCell>
                         <TableCell align="right">
                           <IconButton

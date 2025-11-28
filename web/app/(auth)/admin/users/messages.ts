@@ -1,10 +1,13 @@
 export const usersManagementMessages = {
   title: "Users",
   id: "ID",
+  avatar: "Avatar",
+  displayName: "Display Name",
   roles: "Roles",
   isActive: "Active",
   active: "Active",
   inactive: "Inactive",
+  profileID: "Profile ID",
   noUsers: "No users found",
   loading: "Loading users...",
   actions: "Actions",
