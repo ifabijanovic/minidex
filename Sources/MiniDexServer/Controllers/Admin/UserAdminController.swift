@@ -65,14 +65,6 @@ struct UserAdminController: RestCrudController {
         }
     }
 
-    var sortColumnMapping: [String : String] {
-        [
-            "roles": "roles",
-            "isActive": "is_active",
-            "displayName": "user_profiles.display_name",
-        ]
-    }
-
     func boot(routes: any RoutesBuilder) throws {
         routes
             .grouped("v1", "admin", "users")
