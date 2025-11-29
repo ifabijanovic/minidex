@@ -87,7 +87,7 @@ struct ControllerFilteringTests {
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
                 let response = try res.content.decode(PagedResponse<DTO>.self)
-                // Should only match "Warhammer 40k" (case-sensitive)
+                // Should match both rows (case-insensitive)
                 #expect(response.data.count == 2)
             })
         }

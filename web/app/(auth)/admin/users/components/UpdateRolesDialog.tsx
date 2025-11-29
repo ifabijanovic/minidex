@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 
-import { usersManagementMessages as m } from "@/app/(auth)/admin/users/messages";
+import { updateRolesDialogMessages as m } from "@/app/(auth)/admin/users/messages";
 import { ALL_USER_ROLES, type UserRole } from "@/app/context/user-context";
 
 type UpdateRolesDialogProps = {
@@ -52,7 +52,7 @@ export function UpdateRolesDialog({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>{m.updateRolesDialogTitle}</DialogTitle>
+      <DialogTitle>{m.title}</DialogTitle>
       <DialogContent>
         <FormGroup>
           {ALL_USER_ROLES.map((role) => (
@@ -70,9 +70,9 @@ export function UpdateRolesDialog({
         </FormGroup>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>{m.updateRolesDialogCancel}</Button>
-        <Button onClick={handleSave} disabled={isPending}>
-          {m.updateRolesDialogSave}
+        <Button onClick={onClose}>{m.cancel}</Button>
+        <Button onClick={handleSave} disabled={isPending} variant="contained">
+          {m.save}
         </Button>
       </DialogActions>
     </Dialog>

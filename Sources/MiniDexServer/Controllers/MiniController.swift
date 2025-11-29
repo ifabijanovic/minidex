@@ -32,12 +32,21 @@ struct MiniController: RestCrudController {
     }
 
     func indexFilter(_ q: String, query: QueryBuilder<DBMini>) -> QueryBuilder<DBMini>? {
-        query.filter(\.$name ~~ q) // contains
+        query.caseInsensitiveContains(\.$name, q)
     }
 
-    var sortColumnMapping = [
-        "name": "name",
-    ]
+    func indexSort(
+        _ sort: String,
+        _ order: DatabaseQuery.Sort.Direction,
+        query: QueryBuilder<DBGameSystem>
+    ) -> QueryBuilder<DBGameSystem>? {
+        switch sort {
+        case "name":
+            query.sort(\.$name, order)
+        default:
+            nil
+        }
+    }
 
     func boot(routes: any RoutesBuilder) throws {
         let root = routes

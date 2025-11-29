@@ -48,6 +48,11 @@ public protocol RestCrudController: RouteCollection, Sendable {
     /// primary key in database.
     func findOne(req: Request) async throws -> DBModel?
 
+    /// Called by `index` to build the base query for fetching a list of
+    /// models, before applying any filtering, sorting or pagination.
+    /// Default implementation returns the default query for `DBModel`.
+    func findMany(req: Request) -> QueryBuilder<DBModel>
+
     /// Mapping from `DTO` to `DBModel`, no default implementation.
     func toDTO(_ dbModel: DBModel) throws -> DTO
 
@@ -55,10 +60,13 @@ public protocol RestCrudController: RouteCollection, Sendable {
     /// Default implementation does nothing, implement to support filtering.
     func indexFilter(_ q: String, query: QueryBuilder<DBModel>) -> QueryBuilder<DBModel>?
 
-    /// Called by `index` when sorting parameter is provided.
-    /// Sorting is supported only by fields in the map.
-    /// Default implementation returns an empty map.
-    var sortColumnMapping: [String: String] { get }
+    /// Called by `index` when sort parameter is provided.
+    /// Default implementation does nothing, implement to support sorting.
+    func indexSort(
+        _ sort: String,
+        _ order: DatabaseQuery.Sort.Direction,
+        query: QueryBuilder<DBModel>
+    ) -> QueryBuilder<DBModel>?
 }
 
 extension RestCrudController {
@@ -73,18 +81,37 @@ extension RestCrudController {
         return model
     }
 
+    public func findMany(req: Request) -> QueryBuilder<DBModel> {
+        DBModel.query(on: req.db)
+    }
+
     public func indexFilter(_ q: String, query: QueryBuilder<DBModel>) -> QueryBuilder<DBModel>? {
         nil
     }
 
-    public var sortColumnMapping: [String: String] {
-        [:]
+    public func indexSort(
+        _ sort: String,
+        _ order: DatabaseQuery.Sort.Direction,
+        query: QueryBuilder<DBModel>
+    ) -> QueryBuilder<DBModel>? {
+        nil
     }
 
     public func index(req: Request) async throws -> PagedResponse<DTO> {
         let params = try req.query.decode(ListQueryParams.self)
 
-        var query = DBModel.query(on: req.db)
+        var query = findMany(req: req)
+
+        // Search
+        if let filteredQuery = params.q.flatMap({ indexFilter($0, query: query) }) {
+            query = filteredQuery
+        }
+
+        // Sort
+        let sortOrder = params.order ?? .ascending
+        if let sortedQuery = params.sort.flatMap({ indexSort($0.lowercased(), sortOrder.dbValue, query: query) }) {
+            query = sortedQuery
+        }
 
         // Pagination
         let page = params.page ?? 0
@@ -94,24 +121,13 @@ extension RestCrudController {
         )
         query = query.offset(page * limit).limit(limit)
 
-        // Sort
-        if let sort = params.sort, let column = sortColumnMapping[sort] {
-            let order = params.order ?? .ascending
-            query = query.sort(.string(column), order.dbValue)
-        }
-
-        // Search
-        if let filteredQuery = params.q.flatMap({ indexFilter($0, query: query) }) {
-            query = filteredQuery
-        }
-
         let data = try await query.all().map(toDTO)
 
         return .init(
             data: data,
             page: page,
             limit: limit,
-            sort: params.sort,
+            sort: params.sort?.lowercased(),
             order: params.sort != nil ? (params.order ?? .ascending) : nil,
             query: params.q,
         )

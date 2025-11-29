@@ -28,12 +28,21 @@ struct GameSystemController: RestCrudController {
     }
 
     func indexFilter(_ q: String, query: QueryBuilder<DBGameSystem>) -> QueryBuilder<DBGameSystem>? {
-        query.filter(\.$name ~~ q) // contains
+        query.caseInsensitiveContains(\.$name, q)
     }
 
-    var sortColumnMapping = [
-        "name": "name",
-    ]
+    func indexSort(
+        _ sort: String,
+        _ order: DatabaseQuery.Sort.Direction,
+        query: QueryBuilder<DBGameSystem>
+    ) -> QueryBuilder<DBGameSystem>? {
+        switch sort {
+        case "name":
+            query.sort(\.$name, order)
+        default:
+            nil
+        }
+    }
 
     func boot(routes: any RoutesBuilder) throws {
         let root = routes

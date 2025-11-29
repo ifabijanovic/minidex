@@ -4,7 +4,7 @@ import MiniDexDB
 import Vapor
 import VaporUtils
 
-struct UserProfileController: RestCrudController {
+struct UserProfileAdminController: RestCrudController {
     typealias DBModel = DBUserProfile
 
     struct DTO: Content {
@@ -50,16 +50,25 @@ struct UserProfileController: RestCrudController {
                     .grouped(AuthUser.guardMiddleware())
 
                 root.get(use: self.get)
+            }
 
-                let adminOnly = root.grouped(RequireAdminMiddleware())
-                adminOnly.post(use: self.create { dto, req in
+        routes
+            .grouped("v1", "admin", "users")
+            .grouped(TokenAuthenticator())
+            .grouped(AuthUser.guardMiddleware())
+            .group(":id") { route in
+                let root = route
+                    .grouped("profile")
+                    .grouped(RequireAdminMiddleware())
+
+                root.post(use: self.create { dto, req in
                     try .init(
                         userID: req.parameters.require("id"),
                         displayName: dto.displayName,
                         avatarURL: dto.avatarURL?.absoluteString,
                     )
                 })
-                adminOnly.patch(use: self.update { dbModel, patch in
+                root.patch(use: self.update { dbModel, patch in
                     if let value = patch.displayName { dbModel.displayName = value }
                     if let value = patch.avatarURL { dbModel.avatarURL = value.absoluteString }
                 })

@@ -24,21 +24,12 @@ import { profileEditMessages as m } from "@/app/(auth)/me/messages";
 import { useCurrentUser } from "@/app/context/user-context";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 import { queryKeys } from "@/lib/query-keys";
+import { isValidUrl } from "@/lib/utils/url-validation";
 
 type ProfilePayload = {
   displayName?: string | null;
   avatarURL?: string | null;
 };
-
-function isValidUrl(url: string): boolean {
-  if (!url.trim()) return true; // Empty is valid (will be null)
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export default function ProfileEditPage() {
   const queryClient = useQueryClient();

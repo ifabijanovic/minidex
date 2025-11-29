@@ -58,7 +58,7 @@ struct ControllerSortingTests {
             try await DBGameSystem(name: "Alpha System").save(on: app.db)
             try await DBGameSystem(name: "Beta System").save(on: app.db)
 
-            try await app.testing().test(.GET, "/v1/gamesystems?sort=name&order=asc", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/gamesystems?sort=Name&order=asc", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
