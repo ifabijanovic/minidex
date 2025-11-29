@@ -307,7 +307,9 @@ export default function UsersManagementPage() {
                     <TableCell>
                       <TableSortLabel
                         active={sortField === "displayName"}
-                        direction={sortField === "displayName" ? sortOrder : "asc"}
+                        direction={
+                          sortField === "displayName" ? sortOrder : "asc"
+                        }
                         onClick={() => handleSort("displayName")}
                       >
                         <Typography variant="subtitle2" fontWeight={600}>
