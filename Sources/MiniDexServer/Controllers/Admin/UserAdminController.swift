@@ -45,7 +45,7 @@ struct UserAdminController: RestCrudController {
     }
 
     func indexFilter(_ q: String, query: QueryBuilder<DBUser>) -> QueryBuilder<DBUser>? {
-        query.filter(DBUserProfile.self, \.$displayName ~~ q)
+        query.caseInsensitiveContains(DBUserProfile.self, \.$displayName, q)
     }
 
     var sortColumnMapping: [String : String] {

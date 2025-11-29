@@ -28,7 +28,7 @@ struct GameSystemController: RestCrudController {
     }
 
     func indexFilter(_ q: String, query: QueryBuilder<DBGameSystem>) -> QueryBuilder<DBGameSystem>? {
-        query.filter(\.$name ~~ q) // contains
+        query.caseInsensitiveContains(\.$name, q)
     }
 
     var sortColumnMapping = [

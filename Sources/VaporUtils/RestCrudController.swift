@@ -95,13 +95,10 @@ extension RestCrudController {
 
         var query = findMany(req: req)
 
-        // Pagination
-        let page = params.page ?? 0
-        let limit = min(
-            params.limit ?? ListQueryParams.defaultLimit,
-            req.db.context.pageSizeLimit ?? ListQueryParams.defaultLimit,
-        )
-        query = query.offset(page * limit).limit(limit)
+        // Search
+        if let filteredQuery = params.q.flatMap({ indexFilter($0, query: query) }) {
+            query = filteredQuery
+        }
 
         // Sort
         if let sort = params.sort, let column = sortColumnMapping[sort] {
@@ -109,10 +106,13 @@ extension RestCrudController {
             query = query.sort(.string(column), order.dbValue)
         }
 
-        // Search
-        if let filteredQuery = params.q.flatMap({ indexFilter($0, query: query) }) {
-            query = filteredQuery
-        }
+        // Pagination
+        let page = params.page ?? 0
+        let limit = min(
+            params.limit ?? ListQueryParams.defaultLimit,
+            req.db.context.pageSizeLimit ?? ListQueryParams.defaultLimit,
+        )
+        query = query.offset(page * limit).limit(limit)
 
         let data = try await query.all().map(toDTO)
 
