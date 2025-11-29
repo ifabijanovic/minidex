@@ -27,10 +27,11 @@ type UseUsersOptions = {
   limit?: number;
   sort?: string;
   order?: "asc" | "desc";
+  query?: string;
 };
 
 export function useUsers(options?: UseUsersOptions) {
-  const { page = 0, limit = 25, sort, order } = options ?? {};
+  const { page = 0, limit = 25, sort, order, query } = options ?? {};
 
   const params: Record<string, string> = {
     page: page.toString(),
@@ -44,8 +45,12 @@ export function useUsers(options?: UseUsersOptions) {
     }
   }
 
+  if (query && query.length >= 3) {
+    params.q = query;
+  }
+
   return useApiQuery<PagedUsersResponse>({
-    queryKey: queryKeys.users(page, limit, sort, order),
+    queryKey: queryKeys.users(page, limit, sort, order, query),
     path: "/v1/admin/users",
     request: { params },
   });

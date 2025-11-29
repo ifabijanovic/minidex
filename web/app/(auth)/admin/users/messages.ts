@@ -21,6 +21,7 @@ export const usersPageMessages = {
   invalidateSessionsSuccess: "User sessions invalidated successfully",
   updateRolesSuccess: "Roles updated successfully",
   updateProfileSuccess: "Profile updated successfully",
+  searchPlaceholder: "Search by display name",
 };
 
 export const updateRolesDialogMessages = {

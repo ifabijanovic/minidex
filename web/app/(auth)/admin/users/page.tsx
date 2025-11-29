@@ -1,5 +1,6 @@
 "use client";
 
+import Clear from "@mui/icons-material/Clear";
 import MoreVert from "@mui/icons-material/MoreVert";
 import {
   Box,
@@ -7,6 +8,7 @@ import {
   CardContent,
   Container,
   IconButton,
+  InputAdornment,
   Menu,
   MenuItem,
   Paper,
@@ -20,9 +22,11 @@ import {
   TablePagination,
   TableRow,
   TableSortLabel,
+  TextField,
   Typography,
 } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
+import { useDebounce } from "@uidotdev/usehooks";
 import { enqueueSnackbar } from "notistack";
 import { useState } from "react";
 
@@ -37,7 +41,7 @@ import { type UserRole } from "@/app/context/user-context";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 import { queryKeys } from "@/lib/query-keys";
 
-type SortField = "roles" | "isActive" | null;
+type SortField = "displayName" | "roles" | "isActive" | null;
 type SortOrder = "asc" | "desc";
 
 export default function UsersManagementPage() {
@@ -46,6 +50,8 @@ export default function UsersManagementPage() {
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [sortField, setSortField] = useState<SortField>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [menuAnchor, setMenuAnchor] = useState<{
     element: HTMLElement;
     userId: string;
@@ -66,6 +72,7 @@ export default function UsersManagementPage() {
     limit: rowsPerPage,
     sort: sortField ?? undefined,
     order: sortField ? sortOrder : undefined,
+    query: debouncedSearchQuery.length >= 3 ? debouncedSearchQuery : undefined,
   });
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -76,6 +83,16 @@ export default function UsersManagementPage() {
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+    setPage(0); // Reset to first page when search changes
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
     setPage(0);
   };
 
@@ -251,6 +268,28 @@ export default function UsersManagementPage() {
 
         <Card>
           <CardContent>
+            <Stack spacing={2} sx={{ mb: 2 }}>
+              <TextField
+                placeholder={m.searchPlaceholder}
+                value={searchQuery}
+                onChange={handleSearchChange}
+                size="small"
+                sx={{ maxWidth: 400 }}
+                InputProps={{
+                  endAdornment: searchQuery ? (
+                    <InputAdornment position="end">
+                      <IconButton
+                        size="small"
+                        onClick={handleClearSearch}
+                        edge="end"
+                      >
+                        <Clear fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : undefined,
+                }}
+              />
+            </Stack>
             <TableContainer component={Paper} variant="outlined">
               <Table>
                 <TableHead>
@@ -266,9 +305,15 @@ export default function UsersManagementPage() {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="subtitle2" fontWeight={600}>
-                        {m.displayName}
-                      </Typography>
+                      <TableSortLabel
+                        active={sortField === "displayName"}
+                        direction={sortField === "displayName" ? sortOrder : "asc"}
+                        onClick={() => handleSort("displayName")}
+                      >
+                        <Typography variant="subtitle2" fontWeight={600}>
+                          {m.displayName}
+                        </Typography>
+                      </TableSortLabel>
                     </TableCell>
                     <TableCell>
                       <TableSortLabel
