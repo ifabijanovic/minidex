@@ -26,10 +26,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { enqueueSnackbar } from "notistack";
 import { useState } from "react";
 
+import { UpdateProfileDialog } from "@/app/(auth)/admin/users/components/UpdateProfileDialog";
 import { UpdateRolesDialog } from "@/app/(auth)/admin/users/components/UpdateRolesDialog";
 import { useUsers } from "@/app/(auth)/admin/users/hooks/use-users";
-import { usersManagementMessages as m } from "@/app/(auth)/admin/users/messages";
+import { usersPageMessages as m } from "@/app/(auth)/admin/users/messages";
 import { UserAvatar } from "@/app/(auth)/components/UserAvatar";
+import { type CurrentProfile } from "@/app/(auth)/hooks/use-current-profile";
 import { UuidPreview } from "@/app/components/UuidPreview";
 import { type UserRole } from "@/app/context/user-context";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
@@ -51,6 +53,11 @@ export default function UsersManagementPage() {
   const [updateRolesDialog, setUpdateRolesDialog] = useState<{
     userId: string;
     currentRoles: UserRole[];
+  } | null>(null);
+  const [updateProfileDialog, setUpdateProfileDialog] = useState<{
+    userId: string;
+    currentDisplayName?: string | null;
+    currentAvatarURL?: string | null;
   } | null>(null);
 
   const { data, isLoading } = useUsers({
@@ -92,7 +99,7 @@ export default function UsersManagementPage() {
     setMenuAnchor(null);
   };
 
-  const patchMutation = useApiMutation<
+  const updateRolesMutation = useApiMutation<
     { id: string; roles: UserRole[]; isActive: boolean },
     { userId: string; isActive?: boolean; roles?: UserRole[] }
   >({
@@ -126,6 +133,25 @@ export default function UsersManagementPage() {
     },
   });
 
+  const updateProfileMutation = useApiMutation<
+    CurrentProfile,
+    { userId: string; displayName?: string | null; avatarURL?: string | null }
+  >({
+    method: (variables) => {
+      const user = users.find((u) => u.userID === variables.userId);
+      return user?.profileID ? "patch" : "post";
+    },
+    path: (variables) => `/v1/admin/users/${variables.userId}/profile`,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["users"],
+      });
+      enqueueSnackbar(m.updateProfileSuccess, { variant: "success" });
+      setUpdateProfileDialog(null);
+      handleMenuClose();
+    },
+  });
+
   const handleUpdateRoles = () => {
     if (menuAnchor) {
       const user = users.find((u) => u.userID === menuAnchor.userId);
@@ -139,22 +165,52 @@ export default function UsersManagementPage() {
     }
   };
 
+  const handleUpdateProfile = () => {
+    if (menuAnchor) {
+      const user = users.find((u) => u.userID === menuAnchor.userId);
+      if (user) {
+        setUpdateProfileDialog({
+          userId: menuAnchor.userId,
+          currentDisplayName: user.displayName,
+          currentAvatarURL: user.avatarURL,
+        });
+      }
+      handleMenuClose();
+    }
+  };
+
   const handleUpdateRolesDialogClose = () => {
     setUpdateRolesDialog(null);
   };
 
   const handleUpdateRolesSave = (roles: UserRole[]) => {
     if (updateRolesDialog) {
-      patchMutation.mutate({
+      updateRolesMutation.mutate({
         userId: updateRolesDialog.userId,
         roles,
       });
     }
   };
 
+  const handleUpdateProfileDialogClose = () => {
+    setUpdateProfileDialog(null);
+  };
+
+  const handleUpdateProfileSave = (data: {
+    displayName: string | null;
+    avatarURL: string | null;
+  }) => {
+    if (updateProfileDialog) {
+      updateProfileMutation.mutate({
+        userId: updateProfileDialog.userId,
+        ...data,
+      });
+    }
+  };
+
   const handleActivate = () => {
     if (menuAnchor) {
-      patchMutation.mutate({
+      updateRolesMutation.mutate({
         userId: menuAnchor.userId,
         isActive: true,
       });
@@ -163,7 +219,7 @@ export default function UsersManagementPage() {
 
   const handleDeactivate = () => {
     if (menuAnchor) {
-      patchMutation.mutate({
+      updateRolesMutation.mutate({
         userId: menuAnchor.userId,
         isActive: false,
       });
@@ -350,6 +406,7 @@ export default function UsersManagementPage() {
           transformOrigin={{ vertical: "top", horizontal: "right" }}
         >
           <MenuItem onClick={handleUpdateRoles}>{m.updateRoles}</MenuItem>
+          <MenuItem onClick={handleUpdateProfile}>{m.updateProfile}</MenuItem>
           {menuAnchor?.isActive ? (
             <MenuItem onClick={handleDeactivate}>{m.deactivate}</MenuItem>
           ) : (
@@ -366,7 +423,18 @@ export default function UsersManagementPage() {
             currentRoles={updateRolesDialog.currentRoles}
             onClose={handleUpdateRolesDialogClose}
             onSave={handleUpdateRolesSave}
-            isPending={patchMutation.isPending}
+            isPending={updateRolesMutation.isPending}
+          />
+        )}
+
+        {updateProfileDialog && (
+          <UpdateProfileDialog
+            open={true}
+            currentDisplayName={updateProfileDialog.currentDisplayName}
+            currentAvatarURL={updateProfileDialog.currentAvatarURL}
+            onClose={handleUpdateProfileDialogClose}
+            onSave={handleUpdateProfileSave}
+            isPending={updateProfileMutation.isPending}
           />
         )}
       </Stack>
