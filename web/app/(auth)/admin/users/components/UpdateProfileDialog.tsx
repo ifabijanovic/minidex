@@ -14,6 +14,7 @@ import { FormEvent, useState } from "react";
 
 import { updateProfileDialogMessages as m } from "@/app/(auth)/admin/users/messages";
 import { UserAvatar } from "@/app/(auth)/components/UserAvatar";
+import { isValidUrl } from "@/lib/utils/url-validation";
 
 type UpdateProfileDialogProps = {
   open: boolean;
@@ -26,16 +27,6 @@ type UpdateProfileDialogProps = {
   }) => void;
   isPending?: boolean;
 };
-
-function isValidUrl(url: string): boolean {
-  if (!url.trim()) return true; // Empty is valid (will be null)
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export function UpdateProfileDialog({
   open,
@@ -126,7 +117,9 @@ export function UpdateProfileDialog({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="error">{m.cancel}</Button>
+        <Button onClick={onClose} color="error">
+          {m.cancel}
+        </Button>
         <Button onClick={handleSave} disabled={isFormDisabled || hasFormError}>
           {m.save}
         </Button>

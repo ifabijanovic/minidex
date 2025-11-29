@@ -35,6 +35,7 @@ import { type CurrentProfile } from "@/app/(auth)/hooks/use-current-profile";
 import { UuidPreview } from "@/app/components/UuidPreview";
 import { type UserRole } from "@/app/context/user-context";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
+import { queryKeys } from "@/lib/query-keys";
 
 type SortField = "roles" | "isActive" | null;
 type SortOrder = "asc" | "desc";
@@ -142,9 +143,12 @@ export default function UsersManagementPage() {
       return user?.profileID ? "patch" : "post";
     },
     path: (variables) => `/v1/admin/users/${variables.userId}/profile`,
-    onSuccess: async () => {
+    onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({
         queryKey: ["users"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.currentProfile(variables.userId),
       });
       enqueueSnackbar(m.updateProfileSuccess, { variant: "success" });
       setUpdateProfileDialog(null);
@@ -152,29 +156,30 @@ export default function UsersManagementPage() {
     },
   });
 
+  const getSelectedUser = () => {
+    if (!menuAnchor) return null;
+    return users.find((u) => u.userID === menuAnchor.userId) ?? null;
+  };
+
   const handleUpdateRoles = () => {
-    if (menuAnchor) {
-      const user = users.find((u) => u.userID === menuAnchor.userId);
-      if (user) {
-        setUpdateRolesDialog({
-          userId: menuAnchor.userId,
-          currentRoles: user.roles,
-        });
-      }
+    const user = getSelectedUser();
+    if (user && menuAnchor) {
+      setUpdateRolesDialog({
+        userId: menuAnchor.userId,
+        currentRoles: user.roles,
+      });
       handleMenuClose();
     }
   };
 
   const handleUpdateProfile = () => {
-    if (menuAnchor) {
-      const user = users.find((u) => u.userID === menuAnchor.userId);
-      if (user) {
-        setUpdateProfileDialog({
-          userId: menuAnchor.userId,
-          currentDisplayName: user.displayName,
-          currentAvatarURL: user.avatarURL,
-        });
-      }
+    const user = getSelectedUser();
+    if (user && menuAnchor) {
+      setUpdateProfileDialog({
+        userId: menuAnchor.userId,
+        currentDisplayName: user.displayName,
+        currentAvatarURL: user.avatarURL,
+      });
       handleMenuClose();
     }
   };
