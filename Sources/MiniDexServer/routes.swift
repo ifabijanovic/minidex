@@ -6,12 +6,16 @@ func routes(_ app: Application) throws {
     try app.register(collection: AuthController(
         tokenLength: Settings.Auth.tokenLength,
         accessTokenExpiration: Settings.Auth.accessTokenExpiration,
+        cacheExpiration: Settings.Auth.cacheExpiration,
         newUserRoles: .hobbyist,
         rolesConverter: .minidex,
     ))
 
     // Admin routes
-    try app.register(collection: UserController(rolesConverter: .minidex))
+    try app.register(collection: UserController(
+        cacheExpiration: Settings.Auth.cacheExpiration,
+        rolesConverter: .minidex
+    ))
     try app.register(collection: UserProfileAdminController())
     try app.register(collection: UserAdminController(rolesConverter: .minidex))
 

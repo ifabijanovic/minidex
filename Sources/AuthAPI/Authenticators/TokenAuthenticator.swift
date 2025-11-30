@@ -6,7 +6,11 @@ import VaporRedisUtils
 import VaporUtils
 
 public struct TokenAuthenticator: AsyncBearerAuthenticator {
-    public init() {}
+    let cacheExpiration: TimeInterval
+
+    public init(cacheExpiration: TimeInterval) {
+        self.cacheExpiration = cacheExpiration
+    }
 
     public func authenticate(bearer: BearerAuthorization, for request: Request) async throws {
         if let cached = await request.redisClient.getCachedUser(accessToken: bearer.token, logger: request.logger) {
@@ -46,6 +50,7 @@ public struct TokenAuthenticator: AsyncBearerAuthenticator {
                 hashedAccessToken: hash.base64URLEncodedString(),
                 user: user,
                 accessTokenExpiration: token.expiresAt.timeIntervalSinceNow,
+                cacheExpiration: cacheExpiration,
                 logger: request.logger,
             )
             request.logger.debug("Auth token verified for userID: \(user.id)")

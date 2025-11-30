@@ -22,6 +22,7 @@ public struct AuthenticatedTestContext {
         migrations: [any Migration] = [],
         tokenLength: Int = 32,
         accessTokenExpiration: TimeInterval = 60*60,
+        cacheExpiration: TimeInterval = 30,
         username: String = "testUser",
         password: String = "Password!23",
         roles: Roles,
@@ -33,6 +34,7 @@ public struct AuthenticatedTestContext {
             migrations: migrations,
             tokenLength: tokenLength,
             accessTokenExpiration: accessTokenExpiration,
+            cacheExpiration: cacheExpiration,
             username: username,
             password: password,
             roles: roles,
@@ -53,6 +55,7 @@ public struct AuthenticatedTestContext {
         migrations: [any Migration],
         tokenLength: Int,
         accessTokenExpiration: TimeInterval,
+        cacheExpiration: TimeInterval,
         username: String,
         password: String,
         roles: Roles,
@@ -69,6 +72,7 @@ public struct AuthenticatedTestContext {
         try app.register(collection: AuthController(
             tokenLength: tokenLength,
             accessTokenExpiration: accessTokenExpiration,
+            cacheExpiration: cacheExpiration,
             newUserRoles: roles,
             rolesConverter: rolesConverter,
         ))

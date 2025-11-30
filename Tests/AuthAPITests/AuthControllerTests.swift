@@ -10,10 +10,13 @@ import VaporRedisUtils
 
 @Suite("AuthController", .serialized)
 struct AuthControllerTests {
+    static let cacheExpiration: TimeInterval = 30
+
     static func registerController(app: Application) throws {
         try app.register(collection: AuthController(
             tokenLength: 32,
             accessTokenExpiration: 60*60,
+            cacheExpiration: cacheExpiration,
             newUserRoles: .tester,
             rolesConverter: .test,
         ))
@@ -33,7 +36,7 @@ struct AuthControllerTests {
             try context.redis.assertAuthCacheSet(
                 accessToken: context.token,
                 userID: context.userID,
-                ttl: context.expiresIn,
+                ttl: Int(Self.cacheExpiration),
             )
         }
     }
@@ -310,7 +313,7 @@ struct AuthControllerTests {
             try context.redis.assertAuthCacheSet(
                 accessToken: response.accessToken,
                 userID: response.userId,
-                ttl: response.expiresIn,
+                ttl: Int(Self.cacheExpiration),
             )
         }
     }

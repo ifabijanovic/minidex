@@ -17,16 +17,21 @@ public struct UserController: RouteCollection, Sendable {
         public var isActive: Bool?
     }
 
+    let cacheExpiration: TimeInterval
     let rolesConverter: RolesConverter
 
-    public init(rolesConverter: RolesConverter) {
+    public init(
+        cacheExpiration: TimeInterval,
+        rolesConverter: RolesConverter,
+    ) {
+        self.cacheExpiration = cacheExpiration
         self.rolesConverter = rolesConverter
     }
 
     public func boot(routes: any RoutesBuilder) throws {
         let root = routes
             .grouped("v1", "admin", "users")
-            .grouped(TokenAuthenticator())
+            .grouped(TokenAuthenticator(cacheExpiration: cacheExpiration))
             .grouped(AuthUser.guardMiddleware())
             .grouped(RequireAdminMiddleware())
 

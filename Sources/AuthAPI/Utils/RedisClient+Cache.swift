@@ -21,9 +21,10 @@ extension RedisClient {
         hashedAccessToken: String,
         user: AuthUser,
         accessTokenExpiration: TimeInterval,
+        cacheExpiration: TimeInterval,
         logger: Logger,
     ) async {
-        let ttl = Int(accessTokenExpiration)
+        let ttl = Int(min(cacheExpiration, accessTokenExpiration))
         guard ttl > 0 else {
             logger.warning("Skipped caching token with TTL <= 0")
             return

@@ -12,7 +12,7 @@ import Testing
 
 @Suite("TokenAuthenticator", .serialized)
 struct TokenAuthenticatorTests {
-    private let authenticator = TokenAuthenticator()
+    private let authenticator = TokenAuthenticator(cacheExpiration: 30)
 
     @Test("authenticates cached user with valid token")
     func cacheHitReturnsUser() async throws {
@@ -25,7 +25,7 @@ struct TokenAuthenticatorTests {
 
             let cached = AuthUser(id: try dbUser.requireID(), roles: [.admin], isActive: true, tokenID: try token.requireID())
             let client = context.redis.makeClient(on: app.eventLoopGroup.next())
-            try await client.setex("token:\(encoded)", toJSON: cached, expirationInSeconds: 60)
+            try await client.setex("token:\(encoded)", toJSON: cached, expirationInSeconds: 30)
 
             let req = makeRequest(app: app, bearerToken: encoded)
             try await authenticator.authenticate(bearer: .init(token: encoded), for: req)
@@ -51,7 +51,7 @@ struct TokenAuthenticatorTests {
             let authed = try req.auth.require(AuthUser.self)
             #expect(authed.id == expectedID)
 
-            try context.redis.assertAuthCacheSet(accessToken: encoded, userID: expectedID, ttl: 3600)
+            try context.redis.assertAuthCacheSet(accessToken: encoded, userID: expectedID, ttl: 30)
         }
     }
 
@@ -109,7 +109,7 @@ struct TokenAuthenticatorTests {
             try await authenticator.authenticate(bearer: .init(token: encoded), for: req1)
             #expect(req1.auth.has(AuthUser.self) == true)
 
-            try context.redis.assertAdded(key: "token:\(encoded)", as: AuthUser.self, ttl: 3600)
+            try context.redis.assertAdded(key: "token:\(encoded)", as: AuthUser.self, ttl: 30)
 
             token.isRevoked = true
             try await token.save(on: app.db)
@@ -133,7 +133,7 @@ struct TokenAuthenticatorTests {
             try await authenticator.authenticate(bearer: .init(token: encoded), for: req1)
             #expect(req1.auth.has(AuthUser.self) == true)
 
-            try context.redis.assertAdded(key: "token:\(encoded)", as: AuthUser.self, ttl: 3600)
+            try context.redis.assertAdded(key: "token:\(encoded)", as: AuthUser.self, ttl: 30)
 
             token.expiresAt = Date().addingTimeInterval(-10)
             try await token.save(on: app.db)
