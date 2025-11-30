@@ -1,0 +1,9 @@
+# Frontend
+example.com, www.example.com {
+    reverse_proxy web:3000
+}
+
+# Backend API
+api.example.com {
+    reverse_proxy server:8080
+}

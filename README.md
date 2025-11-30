@@ -47,32 +47,18 @@ Recommended way of launching the server is via Docker Compose, these are the ava
 - `web` – Next.js app on port `3000`, proxying requests to `server`.
 - `db` / `redis` – Postgres + Redis backing services that expect the same env variables defined in `.env`.
 
-To run the whole stack in a production environment first copy the `.env.example` into `.env`, tweak the values as
-needed and then run:
+To run the stack first copy the `.env.example` into `.env`, tweak the values as needed and then run:
 
 ```bash
 docker compose up --build
 ```
 
+This will start both server and web services in dev mode, web supports hot reload.
+
 Run database migrations inside the Compose stack:
 
 ```bash
 docker compose run --rm migrate
-```
-
-When developing the web locally it is useful to run the Next.js app in dev mode so you get all the tooling and hot
-reload. Start all services except web in Docker Compose:
-
-```bash
-docker compose up --build db redis server
-```
-
-And then launch the Next.js app locally:
-
-```bash
-cd web
-npm install
-npm run dev
 ```
 
 The web app proxies API calls through Next.js routes (`/api/*`) to the Vapor server running on `http://localhost:8080`.

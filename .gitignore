@@ -7,9 +7,11 @@ DerivedData/
 db.sqlite
 .swiftpm
 .env
+production.env
 node_modules/
 web/node_modules/
 web/.next/
 *.tsbuildinfo
 default.profraw
 .idea
+Caddyfile

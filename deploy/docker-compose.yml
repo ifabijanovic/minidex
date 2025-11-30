@@ -1,13 +1,18 @@
-# Docker Compose file for MiniDex Local Development
+# Docker Compose file for MiniDex Production Deployment
 #
-# Usage: docker compose -f docker-compose.dev.yml up --build
+# IMPORTANT: This file relies on the following environment variables being set in your .env file:
+# - DEPLOYMENT_TZ - timezone, for log timestamps (e.g., America/Chicago)
+# - DDNS_CONFIG - JSON configuration string for ddns-updater service
+#   See https://github.com/qmcgaw/ddns-updater for supported providers and configuration format
 
 volumes:
   db_data:
   redis-data:
+  caddy_data:  # Volume for persistent Caddy data (SSL certificates)
+  ddns_data:   # Volume for persistent DDNS configuration and history
 
 x-shared_environment: &shared_environment
-  LOG_LEVEL: ${LOG_LEVEL:-debug}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
   DATABASE_HOST: db
   DATABASE_PORT: 5432
   DATABASE_NAME: ${DATABASE_NAME}
@@ -29,9 +34,7 @@ services:
     depends_on:
       - db
       - redis
-    ports:
-      - '8080:8080'
-    command: ["serve", "--env", "development", "--hostname", "0.0.0.0", "--port", "8080"]
+    command: ["serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8080"]
 
   web:
     image: minidex-web:latest
@@ -39,18 +42,9 @@ services:
       context: ./web
     environment:
       API_URL: http://server:8080
-      NODE_ENV: development
+      NODE_ENV: production
     depends_on:
       - server
-    ports:
-      - '3000:3000'
-    volumes:
-      # 1. Mount the local source code into the container for hot reloading (HMR)
-      - ./web:/app
-      # 2. Add an anonymous volume over node_modules to ensure HMR uses container-installed packages
-      - /app/node_modules
-    user: root
-    command: ["sh", "-c", "npm ci && npm run dev"]
 
   migrate:
     image: minidex-server:latest
@@ -85,3 +79,31 @@ services:
     image: redis:8-alpine
     volumes:
       - redis-data:/data
+
+  # CADDY REVERSE PROXY & SSL TERMINATION
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - web
+      - server
+    environment:
+      - TZ=${DEPLOYMENT_TZ}
+
+  # DDNS UPDATER
+  # Configure via DDNS_CONFIG environment variable or volume mount
+  # See https://github.com/qmcgaw/ddns-updater for configuration details
+  ddns:
+    image: qmcgaw/ddns-updater
+    restart: always
+    volumes:
+      - ddns_data:/updater/data
+    environment:
+      - CONFIG=${DDNS_CONFIG}
+      - TZ=${DEPLOYMENT_TZ}
