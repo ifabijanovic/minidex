@@ -26,6 +26,13 @@ extension TokenClient {
                     .filter(\.$user.$id == userID)
                     .all()
 
+                try await DBUserToken
+                    .query(on: db ?? req.db)
+                    .filter(\.$user.$id == userID)
+                    .filter(\.$isRevoked == false)
+                    .set(\.$isRevoked, to: true)
+                    .update()
+
                 for token in allTokens {
                     let hashed = token.value.base64URLEncodedString()
                     await req.redisClient.invalidate(
@@ -33,13 +40,6 @@ extension TokenClient {
                         logger: req.logger
                     )
                 }
-
-                try await DBUserToken
-                    .query(on: db ?? req.db)
-                    .filter(\.$user.$id == userID)
-                    .filter(\.$isRevoked == false)
-                    .set(\.$isRevoked, to: true)
-                    .update()
 
                 req.logger.debug("Revoked all active tokens for userID: \(userID)")
             }
