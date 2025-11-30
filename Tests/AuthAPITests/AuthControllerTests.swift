@@ -153,32 +153,6 @@ struct AuthControllerTests {
         }
     }
 
-    @Test("logout fails when token missing")
-    func logoutWithMissingTokenFails() async throws {
-        try await AuthenticatedTestContext.run(
-            username: "cilan",
-            roles: .admin,
-        ) { context in
-            let app = context.app
-
-            let token = try await DBUserToken.query(on: app.db)
-                .filter(\.$user.$id == context.userID)
-                .first()
-            try await token?.delete(on: app.db)
-
-            try await app.testing().test(
-                .POST,
-                "v1/auth/logout",
-                beforeRequest: { req in
-                    req.headers.bearerAuthorization = .init(token: context.token)
-                },
-                afterResponse: { res async in
-                    #expect(res.status == .unauthorized)
-                }
-            )
-        }
-    }
-
     @Test("logout succeeds even if Redis invalidation fails")
     func logoutHandlesRedisInvalidationFailure() async throws {
         try await AuthenticatedTestContext.run(

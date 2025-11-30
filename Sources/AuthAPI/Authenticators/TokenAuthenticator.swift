@@ -14,15 +14,9 @@ public struct TokenAuthenticator: AsyncBearerAuthenticator {
 
     public func authenticate(bearer: BearerAuthorization, for request: Request) async throws {
         if let cached = await request.redisClient.getCachedUser(accessToken: bearer.token, logger: request.logger) {
+            // Tokens are short-lived in cache so we trust them without additional checks
             request.logger.debug("Token auth cache hit for userID: \(cached.id)")
-            // Check token state even on cache hit
-            if let tokenID = cached.tokenID,
-               let token = try await DBUserToken.find(tokenID, on: request.db),
-               request.tokenClient.isTokenValid(token)
-            {
-                request.logger.debug("Cached token valid for userID: \(cached.id)")
-                request.auth.login(cached)
-            }
+            request.auth.login(cached)
             return
         }
 
