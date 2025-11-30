@@ -50,7 +50,7 @@ extension TokenClient {
         "token:\(accessToken)"
     }
 
-    static func tokenCacheKey(hashedAccessToken: String) -> String {
+    static func tokenLookupKey(hashedAccessToken: String) -> String {
         "token_hash:\(hashedAccessToken)"
     }
 

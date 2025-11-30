@@ -16,10 +16,10 @@ extension InMemoryRedisDriver {
         #expect(cachedUser.id == userID)
 
         let hashedAccessToken = try #require(TokenClient.hash(token: accessToken))
-        let hashedKey = TokenClient.tokenCacheKey(
+        let lookupKey = TokenClient.tokenLookupKey(
             hashedAccessToken: hashedAccessToken.base64URLEncodedString()
         )
-        try assertAdded(key: hashedKey, as: String.self, ttl: ttl)
+        try assertAdded(key: lookupKey, as: String.self, ttl: ttl)
     }
 
     public func assertAuthCacheCleared(accessToken: String) throws {
@@ -27,10 +27,10 @@ extension InMemoryRedisDriver {
         assertCleared(key: userKey)
 
         let hashedAccessToken = try #require(TokenClient.hash(token: accessToken))
-        let hashedKey = TokenClient.tokenCacheKey(
+        let lookupKey = TokenClient.tokenLookupKey(
             hashedAccessToken: hashedAccessToken.base64URLEncodedString()
         )
-        assertCleared(key: hashedKey)
+        assertCleared(key: lookupKey)
     }
 }
 #endif

@@ -38,7 +38,7 @@ extension RedisClient {
             )
             // Cache raw token for cache invalidation
             try await setex(
-                RedisKey(TokenClient.tokenCacheKey(hashedAccessToken: hashedAccessToken)),
+                RedisKey(TokenClient.tokenLookupKey(hashedAccessToken: hashedAccessToken)),
                 toJSON: accessToken,
                 expirationInSeconds: ttl
             )
@@ -56,14 +56,14 @@ extension RedisClient {
     func invalidate(hashedAccessToken: String, logger: Logger) async {
         do {
             guard let accessToken = try await get(
-                RedisKey(TokenClient.tokenCacheKey(hashedAccessToken: hashedAccessToken)),
+                RedisKey(TokenClient.tokenLookupKey(hashedAccessToken: hashedAccessToken)),
                 asJSON: String.self
             ) else {
                 logger.debug("No auth cache to invalidate")
                 return
             }
             _ = try await delete(RedisKey(TokenClient.userCacheKey(accessToken: accessToken))).get()
-            _ = try await delete(RedisKey(TokenClient.tokenCacheKey(hashedAccessToken: hashedAccessToken))).get()
+            _ = try await delete(RedisKey(TokenClient.tokenLookupKey(hashedAccessToken: hashedAccessToken))).get()
             logger.debug("Auth cache invalidated")
         } catch {
             logger.error("Auth cache invalidation from Redis failed: \(error)")
