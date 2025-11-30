@@ -18,6 +18,7 @@ struct UserControllerTests {
     static func registerController(app: Application) throws {
         try app.register(collection: UserController(
             cacheExpiration: cacheExpiration,
+            checksumSecret: "test-secret",
             rolesConverter: .test
         ))
     }

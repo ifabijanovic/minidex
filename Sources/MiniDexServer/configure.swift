@@ -19,6 +19,9 @@ public func configure(_ app: Application) async throws {
     guard let dbName = Settings.DB.database else { throw InvalidDBSettingsError(key: "DATABASE_NAME") }
     guard let redisHostname = Settings.Redis.hostname else { throw InvalidDBSettingsError(key: "REDIS_HOST") }
     guard let redisPort = Settings.Redis.port else { throw InvalidDBSettingsError(key: "REDIS_PORT") }
+    guard let cacheChecksumSecret = Settings.Auth.cacheChecksumSecret else {
+        throw InvalidDBSettingsError(key: "AUTH_CACHE_CHECKSUM_SECRET")
+    }
 
     app.databases.use(
         DatabaseConfigurationFactory.postgres(
@@ -51,5 +54,5 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(MiniDexDB.migrations)
 
     // register routes
-    try routes(app)
+    try routes(app, cacheChecksumSecret: cacheChecksumSecret)
 }

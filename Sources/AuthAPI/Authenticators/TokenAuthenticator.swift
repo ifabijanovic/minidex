@@ -7,13 +7,19 @@ import VaporUtils
 
 public struct TokenAuthenticator: AsyncBearerAuthenticator {
     let cacheExpiration: TimeInterval
+    let checksumSecret: String
 
-    public init(cacheExpiration: TimeInterval) {
+    public init(cacheExpiration: TimeInterval, checksumSecret: String) {
         self.cacheExpiration = cacheExpiration
+        self.checksumSecret = checksumSecret
     }
 
     public func authenticate(bearer: BearerAuthorization, for request: Request) async throws {
-        if let cached = await request.redisClient.getCachedUser(accessToken: bearer.token, logger: request.logger) {
+        if let cached = await request.redisClient.getCachedUser(
+            accessToken: bearer.token,
+            checksumSecret: checksumSecret,
+            logger: request.logger
+        ) {
             // Tokens are short-lived in cache so we trust them without additional checks
             request.logger.debug("Token auth cache hit for userID: \(cached.id)")
             request.auth.login(cached)
@@ -45,6 +51,7 @@ public struct TokenAuthenticator: AsyncBearerAuthenticator {
                 user: user,
                 accessTokenExpiration: token.expiresAt.timeIntervalSinceNow,
                 cacheExpiration: cacheExpiration,
+                checksumSecret: checksumSecret,
                 logger: request.logger,
             )
             request.logger.debug("Auth token verified for userID: \(user.id)")

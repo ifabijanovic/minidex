@@ -12,7 +12,10 @@ import Testing
 
 @Suite("TokenAuthenticator", .serialized)
 struct TokenAuthenticatorTests {
-    private let authenticator = TokenAuthenticator(cacheExpiration: 30)
+    private let authenticator = TokenAuthenticator(
+        cacheExpiration: 30,
+        checksumSecret: "test-secret"
+    )
 
     @Test("authenticates cached user with valid token")
     func cacheHitReturnsUser() async throws {
@@ -23,7 +26,8 @@ struct TokenAuthenticatorTests {
             let (encoded, raw) = makeTokenValue("cached-token")
             let token = try await storeToken(for: dbUser, rawToken: raw, expiresIn: 3600, isRevoked: false, on: app.db)
 
-            let cached = AuthUser(id: try dbUser.requireID(), roles: [.admin], isActive: true, tokenID: try token.requireID())
+            let user = AuthUser(id: try dbUser.requireID(), roles: [.admin], isActive: true, tokenID: try token.requireID())
+            let cached = CachedAuthUser(user: user, checksumSecret: "test-secret")
             let client = context.redis.makeClient(on: app.eventLoopGroup.next())
             try await client.setex("token:\(encoded)", toJSON: cached, expirationInSeconds: 30)
 
@@ -31,7 +35,7 @@ struct TokenAuthenticatorTests {
             try await authenticator.authenticate(bearer: .init(token: encoded), for: req)
 
             let authed = try req.auth.require(AuthUser.self)
-            #expect(authed.id == cached.id)
+            #expect(authed.id == cached.user.id)
         }
     }
 
@@ -109,7 +113,7 @@ struct TokenAuthenticatorTests {
             try await authenticator.authenticate(bearer: .init(token: encoded), for: req1)
             #expect(req1.auth.has(AuthUser.self))
 
-            try context.redis.assertAdded(key: "token:\(encoded)", as: AuthUser.self, ttl: 30)
+            try context.redis.assertAdded(key: "token:\(encoded)", as: CachedAuthUser.self, ttl: 30)
 
             token.isRevoked = true
             try await token.save(on: app.db)
@@ -127,7 +131,8 @@ struct TokenAuthenticatorTests {
             let app = context.app
 
             let tokenID = UUID()
-            let cached = AuthUser(id: UUID(), roles: [.admin], isActive: true, tokenID: tokenID)
+            let user = AuthUser(id: UUID(), roles: [.admin], isActive: true, tokenID: tokenID)
+            let cached = CachedAuthUser(user: user, checksumSecret: "test-secret")
 
             let accessToken = "cached-but-missing"
             let client = context.redis.makeClient(on: app.eventLoopGroup.next())

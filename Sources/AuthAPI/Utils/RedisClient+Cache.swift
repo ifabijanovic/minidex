@@ -5,11 +5,22 @@ import Redis
 extension RedisClient {
     func getCachedUser(
         accessToken: String,
+        checksumSecret: String,
         logger: Logger,
     ) async -> AuthUser? {
         do {
             let key = TokenClient.userCacheKey(accessToken: accessToken)
-            return try await get(RedisKey(key), asJSON: AuthUser.self)
+            guard let cached = try await get(RedisKey(key), asJSON: CachedAuthUser.self) else {
+                return nil
+            }
+
+            guard cached.isValid(secret: checksumSecret) else {
+                logger.warning("Cached user data failed checksum validation for userID: \(cached.user.id)")
+                _ = try? await delete(RedisKey(key)).get()
+                return nil
+            }
+            
+            return cached.user
         } catch {
             logger.error("User cache lookup in Redis failed: \(error)")
             return nil
@@ -22,6 +33,7 @@ extension RedisClient {
         user: AuthUser,
         accessTokenExpiration: TimeInterval,
         cacheExpiration: TimeInterval,
+        checksumSecret: String,
         logger: Logger,
     ) async {
         let ttl = Int(min(cacheExpiration, accessTokenExpiration))
@@ -31,10 +43,12 @@ extension RedisClient {
         }
 
         do {
+            let cached = CachedAuthUser(user: user, checksumSecret: checksumSecret)
+            
             // Cache user in Redis for fast lookup
             try await setex(
                 RedisKey(TokenClient.userCacheKey(accessToken: accessToken)),
-                toJSON: user,
+                toJSON: cached,
                 expirationInSeconds: ttl
             )
             // Cache raw token for cache invalidation

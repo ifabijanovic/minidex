@@ -18,20 +18,23 @@ public struct UserController: RouteCollection, Sendable {
     }
 
     let cacheExpiration: TimeInterval
+    let checksumSecret: String
     let rolesConverter: RolesConverter
 
     public init(
         cacheExpiration: TimeInterval,
+        checksumSecret: String,
         rolesConverter: RolesConverter,
     ) {
         self.cacheExpiration = cacheExpiration
+        self.checksumSecret = checksumSecret
         self.rolesConverter = rolesConverter
     }
 
     public func boot(routes: any RoutesBuilder) throws {
         let root = routes
             .grouped("v1", "admin", "users")
-            .grouped(TokenAuthenticator(cacheExpiration: cacheExpiration))
+            .grouped(TokenAuthenticator(cacheExpiration: cacheExpiration, checksumSecret: checksumSecret))
             .grouped(AuthUser.guardMiddleware())
             .grouped(RequireAdminMiddleware())
 

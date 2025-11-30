@@ -73,6 +73,7 @@ public struct AuthenticatedTestContext {
             tokenLength: tokenLength,
             accessTokenExpiration: accessTokenExpiration,
             cacheExpiration: cacheExpiration,
+            checksumSecret: "test-secret",
             newUserRoles: roles,
             rolesConverter: rolesConverter,
         ))

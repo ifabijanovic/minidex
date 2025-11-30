@@ -12,8 +12,8 @@ extension InMemoryRedisDriver {
         ttl: Int,
     ) throws {
         let tokenKey = TokenClient.userCacheKey(accessToken: accessToken)
-        let cachedUser = try assertAdded(key: tokenKey, as: AuthUser.self, ttl: ttl)
-        #expect(cachedUser.id == userID)
+        let cached = try assertAdded(key: tokenKey, as: CachedAuthUser.self, ttl: ttl)
+        #expect(cached.user.id == userID)
 
         let hashedAccessToken = try #require(TokenClient.hash(token: accessToken))
         let lookupKey = TokenClient.tokenLookupKey(

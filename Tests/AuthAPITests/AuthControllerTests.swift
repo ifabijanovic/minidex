@@ -17,6 +17,7 @@ struct AuthControllerTests {
             tokenLength: 32,
             accessTokenExpiration: 60*60,
             cacheExpiration: cacheExpiration,
+            checksumSecret: "test-secret",
             newUserRoles: .tester,
             rolesConverter: .test,
         ))

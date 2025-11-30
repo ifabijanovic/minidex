@@ -7,6 +7,7 @@ enum Settings {
         static let accessTokenExpiration: TimeInterval = 60 * 60 * 24
         /// Tokens are short-lived in cache
         static let cacheExpiration: TimeInterval = 5 * 60
+        static var cacheChecksumSecret: String? { Environment.get("AUTH_CACHE_CHECKSUM_SECRET") }
     }
 
     enum DB {
