@@ -108,7 +108,7 @@ export default function ProfileEditPage() {
 
         <Card>
           <CardContent>
-            <Stack spacing={3} sx={{ p: 2 }}>
+            <Stack spacing={3}>
               {isProfileLoading ? (
                 <Skeleton variant="rectangular" height={56} animation="wave" />
               ) : (
@@ -126,7 +126,14 @@ export default function ProfileEditPage() {
               {isProfileLoading ? (
                 <Skeleton variant="rectangular" height={56} animation="wave" />
               ) : (
-                <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    gap: 2,
+                    alignItems: { xs: "flex-start", sm: "flex-start" },
+                  }}
+                >
                   <TextField
                     label={m.avatarUrlLabel}
                     value={avatarURL}
@@ -146,6 +153,7 @@ export default function ProfileEditPage() {
                         avatarURL={avatarURL.trim()}
                         width={56}
                         height={56}
+                        sx={{ flexShrink: 0 }}
                       />
                     )}
                 </Box>
@@ -154,12 +162,18 @@ export default function ProfileEditPage() {
           </CardContent>
         </Card>
 
-        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: { xs: "stretch", sm: "flex-end" },
+          }}
+        >
           <Button
             type="submit"
             variant="contained"
             size="large"
             disabled={isFormDisabled || hasFormError}
+            fullWidth={false}
           >
             {saveMutation.isPending ? m.submitPending : m.submitIdle}
           </Button>

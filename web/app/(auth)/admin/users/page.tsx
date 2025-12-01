@@ -1,6 +1,5 @@
 "use client";
 
-import Clear from "@mui/icons-material/Clear";
 import MoreVert from "@mui/icons-material/MoreVert";
 import {
   Box,
@@ -8,7 +7,6 @@ import {
   CardContent,
   Container,
   IconButton,
-  InputAdornment,
   Menu,
   MenuItem,
   Paper,
@@ -22,7 +20,6 @@ import {
   TablePagination,
   TableRow,
   TableSortLabel,
-  TextField,
   Typography,
 } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
@@ -36,6 +33,7 @@ import { useUsers } from "@/app/(auth)/admin/users/hooks/use-users";
 import { usersPageMessages as m } from "@/app/(auth)/admin/users/messages";
 import { UserAvatar } from "@/app/(auth)/components/UserAvatar";
 import { type CurrentProfile } from "@/app/(auth)/hooks/use-current-profile";
+import { SearchField } from "@/app/components/SearchField";
 import { UuidPreview } from "@/app/components/UuidPreview";
 import { type UserRole } from "@/app/context/user-context";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
@@ -269,25 +267,12 @@ export default function UsersManagementPage() {
         <Card>
           <CardContent>
             <Stack spacing={2} sx={{ mb: 2 }}>
-              <TextField
+              <SearchField
                 placeholder={m.searchPlaceholder}
                 value={searchQuery}
                 onChange={handleSearchChange}
+                onClear={handleClearSearch}
                 size="small"
-                sx={{ maxWidth: 400 }}
-                InputProps={{
-                  endAdornment: searchQuery ? (
-                    <InputAdornment position="end">
-                      <IconButton
-                        size="small"
-                        onClick={handleClearSearch}
-                        edge="end"
-                      >
-                        <Clear fontSize="small" />
-                      </IconButton>
-                    </InputAdornment>
-                  ) : undefined,
-                }}
               />
             </Stack>
             <TableContainer component={Paper} variant="outlined">

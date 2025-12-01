@@ -93,7 +93,14 @@ export function UpdateProfileDialog({
             InputLabelProps={{ shrink: true, required: false }}
           />
 
-          <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              gap: 2,
+              alignItems: { xs: "flex-start", sm: "flex-start" },
+            }}
+          >
             <TextField
               label={m.avatarUrlLabel}
               value={avatarURL}
@@ -111,6 +118,7 @@ export function UpdateProfileDialog({
                 avatarURL={avatarURL.trim()}
                 width={56}
                 height={56}
+                sx={{ flexShrink: 0 }}
               />
             )}
           </Box>

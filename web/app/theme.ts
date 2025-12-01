@@ -156,13 +156,56 @@ const buildTheme = (mode: "light" | "dark") => {
           a: { color: "inherit" },
         },
       },
+      MuiTypography: {
+        styleOverrides: {
+          h2: ({ theme }) => ({
+            [theme.breakpoints.down("sm")]: {
+              fontSize: "2rem",
+            },
+            [theme.breakpoints.between("sm", "md")]: {
+              fontSize: "2.5rem",
+            },
+            [theme.breakpoints.up("md")]: {
+              fontSize: "3rem",
+            },
+          }),
+          h4: ({ theme }) => ({
+            [theme.breakpoints.down("sm")]: {
+              fontSize: "1.5rem",
+            },
+            [theme.breakpoints.between("sm", "md")]: {
+              fontSize: "1.75rem",
+            },
+            [theme.breakpoints.up("md")]: {
+              fontSize: "2rem",
+            },
+          }),
+          h5: ({ theme }) => ({
+            [theme.breakpoints.down("sm")]: {
+              fontSize: "1.1rem",
+            },
+            [theme.breakpoints.between("sm", "md")]: {
+              fontSize: "1.25rem",
+            },
+            [theme.breakpoints.up("md")]: {
+              fontSize: "1.5rem",
+            },
+          }),
+        },
+      },
       MuiButton: {
         styleOverrides: {
-          root: {
+          root: ({ theme }) => ({
             borderRadius: 12,
             textTransform: "none",
             fontWeight: 600,
-          },
+            [theme.breakpoints.down("sm")]: {
+              width: "100%",
+            },
+            [theme.breakpoints.up("sm")]: {
+              width: "auto",
+            },
+          }),
         },
       },
       MuiCard: {
@@ -173,6 +216,18 @@ const buildTheme = (mode: "light" | "dark") => {
             boxShadow: "none",
             borderRadius: 20,
           },
+        },
+      },
+      MuiCardContent: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            [theme.breakpoints.down("sm")]: {
+              padding: "8px",
+            },
+            [theme.breakpoints.up("sm")]: {
+              padding: "16px",
+            },
+          }),
         },
       },
       MuiOutlinedInput: {
@@ -189,6 +244,31 @@ const buildTheme = (mode: "light" | "dark") => {
             "&.Mui-focused fieldset": {
               borderColor: paletteSource.primary.main,
             },
+          },
+        },
+      },
+      MuiTableContainer: {
+        styleOverrides: {
+          root: {
+            overflowX: "auto",
+            "& .MuiTable-root": {
+              minWidth: 800, // Ensure table has minimum width for readability
+            },
+          },
+        },
+      },
+      MuiTablePagination: {
+        styleOverrides: {
+          root: {
+            overflowX: "auto",
+            "& .MuiTablePagination-toolbar": {
+              flexWrap: "wrap",
+              gap: 1,
+            },
+            "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
+              {
+                m: 0,
+              },
           },
         },
       },
