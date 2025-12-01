@@ -111,10 +111,19 @@ const darkPalette = {
 const typography = {
   fontFamily: `"Inter", "Roboto", "Helvetica", "Arial", sans-serif`,
   h1: { fontSize: "2.5rem", fontWeight: 700 },
-  h2: { fontSize: "2rem", fontWeight: 700 },
+  h2: {
+    fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
+    fontWeight: 700,
+  },
   h3: { fontSize: "1.75rem", fontWeight: 600 },
-  h4: { fontSize: "1.5rem", fontWeight: 600 },
-  h5: { fontSize: "1.25rem", fontWeight: 600 },
+  h4: {
+    fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
+    fontWeight: 600,
+  },
+  h5: {
+    fontSize: { xs: "1.1rem", sm: "1.25rem", md: "1.5rem" },
+    fontWeight: 600,
+  },
   h6: { fontSize: "1.1rem", fontWeight: 600 },
   body1: { fontSize: "1rem" },
   body2: { fontSize: "0.875rem" },
@@ -162,6 +171,7 @@ const buildTheme = (mode: "light" | "dark") => {
             borderRadius: 12,
             textTransform: "none",
             fontWeight: 600,
+            width: { xs: "100%", sm: "auto" },
           },
         },
       },
@@ -172,6 +182,13 @@ const buildTheme = (mode: "light" | "dark") => {
             border: `1px solid ${paletteSource.grey[300]}`,
             boxShadow: "none",
             borderRadius: 20,
+          },
+        },
+      },
+      MuiCardContent: {
+        styleOverrides: {
+          root: {
+            padding: { xs: "8px", sm: "16px" },
           },
         },
       },

@@ -21,7 +21,9 @@ export function AuthCard({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        minHeight: "100vh",
+        minHeight: { xs: "100dvh", sm: "100vh" },
+        py: { xs: 2, sm: 3 },
+        boxSizing: "border-box",
       }}
     >
       <Paper elevation={elevation} sx={{ p: { xs: 3, md: 4 }, width: "100%" }}>

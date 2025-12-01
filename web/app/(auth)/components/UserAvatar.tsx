@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, Skeleton } from "@mui/material";
+import { Avatar, Skeleton, SxProps, Theme } from "@mui/material";
 import { useMemo, useState } from "react";
 
 type UserAvatarProps = {
@@ -9,6 +9,7 @@ type UserAvatarProps = {
   isLoading?: boolean;
   width?: number;
   height?: number;
+  sx?: SxProps<Theme>;
 };
 
 export function UserAvatar({
@@ -17,6 +18,7 @@ export function UserAvatar({
   isLoading = false,
   width = 40,
   height = 40,
+  sx,
 }: UserAvatarProps) {
   const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
 
@@ -52,6 +54,7 @@ export function UserAvatar({
         height,
         bgcolor: avatarSrc ? undefined : "primary.main",
         color: avatarSrc ? undefined : "primary.contrastText",
+        ...sx,
       }}
     >
       {initials}

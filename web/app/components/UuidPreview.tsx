@@ -34,14 +34,29 @@ export function UuidPreview({ id }: UuidPreviewProps) {
   return (
     <Tooltip
       title={
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography variant="body2" fontFamily="monospace">
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "flex-start", sm: "center" },
+            gap: 1,
+            maxWidth: { xs: "90vw", sm: "none" },
+          }}
+        >
+          <Typography
+            variant="body2"
+            fontFamily="monospace"
+            sx={{
+              wordBreak: "break-all",
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+            }}
+          >
             {id}
           </Typography>
           <IconButton
             size="small"
             onClick={handleCopy}
-            sx={{ color: "inherit", padding: 0.5 }}
+            sx={{ color: "inherit", padding: 0.5, flexShrink: 0 }}
           >
             <ContentCopy fontSize="small" />
           </IconButton>
@@ -52,8 +67,8 @@ export function UuidPreview({ id }: UuidPreviewProps) {
       slotProps={{
         tooltip: {
           sx: {
-            maxWidth: "none",
-            padding: 1.5,
+            maxWidth: { xs: "90vw", sm: "none" },
+            padding: { xs: 1, sm: 1.5 },
           },
         },
       }}
