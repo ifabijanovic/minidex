@@ -15,6 +15,12 @@ const config = [
       "unused-imports/no-unused-imports": "error",
     },
   },
+  {
+    files: ["**/*.d.ts"],
+    rules: {
+      "unused-imports/no-unused-imports": "off",
+    },
+  },
 ];
 
 export default config;

@@ -9,37 +9,45 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
+import { Theme } from "@mui/material/styles";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ElementType } from "react";
 import { ReactNode, useState } from "react";
 
-const baseStyles = {
-  borderRadius: 1.5,
-  mb: 1,
-  "&:hover": {
-    bgcolor: "primary.light",
-  },
-  "&.Mui-selected": {
-    bgcolor: "primary.main",
-    color: "primary.contrastText",
-    "& .MuiListItemIcon-root": {
-      color: "primary.contrastText",
-    },
+const baseStyles = (theme: Theme) => {
+  const isLight = theme.palette.mode === "light";
+  return {
+    borderRadius: 1.5,
+    mb: 1,
     "&:hover": {
-      bgcolor: "primary.light",
+      bgcolor: isLight
+        ? theme.palette.primary.light
+        : theme.palette.primary.dark,
+    },
+    "&.Mui-selected": {
+      bgcolor: "primary.main",
       color: "primary.contrastText",
       "& .MuiListItemIcon-root": {
         color: "primary.contrastText",
       },
+      "&:hover": {
+        bgcolor: isLight
+          ? theme.palette.primary.light
+          : theme.palette.primary.dark,
+        color: "primary.contrastText",
+        "& .MuiListItemIcon-root": {
+          color: "primary.contrastText",
+        },
+      },
     },
-  },
+  };
 };
 
-const childItemStyles = {
-  ...baseStyles,
+const childItemStyles = (theme: Theme) => ({
+  ...baseStyles(theme),
   pl: 4,
-};
+});
 
 type NavItemProps = {
   label: string;

@@ -4,20 +4,20 @@
 import { createTheme } from "@mui/material/styles";
 
 const primary = {
-  lightest: "#C6D4FF",
-  light: "#7C95E3",
-  main: "#4C6CE8",
-  dark: "#2F47AC",
-  darkest: "#1A2F7A",
+  lightest: "#D4E0FF",
+  light: "#7BA2FF",
+  main: "#1F4CEB",
+  dark: "#173AB3",
+  darkest: "#0F2876",
   contrastText: "#FFFFFF",
 };
 
 const secondary = {
-  lightest: "#FFD4D4",
-  light: "#E98989",
-  main: "#D75A5A",
-  dark: "#B04444",
-  darkest: "#9A3F3F",
+  lightest: "#F4D5D5",
+  light: "#DE8A8A",
+  main: "#B84242",
+  dark: "#8A3232",
+  darkest: "#5A1F1F",
   contrastText: "#FFFFFF",
 };
 
@@ -25,17 +25,17 @@ const success = {
   lightest: "#D8F5E5",
   light: "#72D7A5",
   main: "#31B77A",
-  dark: "#1E8156",
-  darkest: "#11523A",
+  dark: "#1C7A50",
+  darkest: "#114C31",
   contrastText: "#FFFFFF",
 };
 
 const warning = {
-  lightest: "#FFF4D6",
-  light: "#F9D686",
-  main: "#F5B945",
-  dark: "#C98D2C",
-  darkest: "#8A5E13",
+  lightest: "#FFF2D4",
+  light: "#F8D387",
+  main: "#F5B743",
+  dark: "#C2872A",
+  darkest: "#815612",
   contrastText: "#000000",
 };
 
@@ -55,7 +55,7 @@ const lightPalette = {
   warning,
   error,
   background: {
-    default: "#F7F9FC",
+    default: "#F5F7FA",
     paper: "#FFFFFF",
   },
   text: {
@@ -65,9 +65,9 @@ const lightPalette = {
   },
   grey: {
     50: "#FAFAFA",
-    100: "#F3F4F6",
-    200: "#E5E7EB",
-    300: "#D1D5DB",
+    100: "#F1F3F5",
+    200: "#E2E6EA",
+    300: "#CBD2D9",
     400: "#9CA3AF",
     500: "#6B7280",
     600: "#4B5563",
@@ -79,18 +79,28 @@ const lightPalette = {
 };
 
 const darkPalette = {
-  primary,
-  secondary,
+  primary: {
+    ...primary,
+    main: "#3B63FF",
+    dark: "#1A3CA9",
+    darkest: "#0F2876",
+  },
+  secondary: {
+    ...secondary,
+    main: "#CC4949",
+    dark: "#9B3434",
+    darkest: "#5A1F1F",
+  },
   success,
   warning,
   error,
   background: {
-    default: "#0E1117",
-    paper: "#14171D",
+    default: "#0C0F14",
+    paper: "#0F131A",
   },
   text: {
     primary: "#FFFFFF",
-    secondary: "#E6E6E6",
+    secondary: "#E2E2E2",
     disabled: "rgba(255,255,255,0.38)",
   },
   grey: {
@@ -100,8 +110,8 @@ const darkPalette = {
     300: "#8B8B8B",
     400: "#6E6E6E",
     500: "#515151",
-    600: "#3A3A3A",
-    700: "#26292E",
+    600: "#393C40",
+    700: "#272A2F",
     800: "#1A1D22",
     900: "#14171D",
   },
@@ -270,6 +280,56 @@ const buildTheme = (mode: "light" | "dark") => {
                 m: 0,
               },
           },
+        },
+      },
+      MuiTableRow: {
+        styleOverrides: {
+          root: ({ theme }) => {
+            const color =
+              theme.palette.mode === "light"
+                ? theme.palette.primary.light
+                : theme.palette.primary.dark;
+            return {
+              "&.MuiTableRow-hover:hover": {
+                backgroundColor: `${color} !important`,
+              },
+              "&.MuiTableRow-hover:hover .MuiTableCell-root": {
+                color: theme.palette.primary.contrastText,
+              },
+            };
+          },
+        },
+      },
+      MuiMenuItem: {
+        styleOverrides: {
+          root: ({ theme }) => {
+            const color =
+              theme.palette.mode === "light"
+                ? theme.palette.primary.light
+                : theme.palette.primary.dark;
+            return {
+              "&:hover": {
+                backgroundColor: color,
+                color: theme.palette.primary.contrastText,
+                "& .MuiListItemIcon-root": {
+                  color: theme.palette.primary.contrastText,
+                },
+                "& .MuiTypography-root": {
+                  color: theme.palette.primary.contrastText,
+                },
+              },
+            };
+          },
+        },
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: ({ theme }) => ({
+            backgroundImage:
+              theme.palette.mode === "light"
+                ? "none"
+                : "linear-gradient(rgba(255,255,255,0.05), rgba(255,255,255,0.05))",
+          }),
         },
       },
     },

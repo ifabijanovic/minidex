@@ -70,8 +70,10 @@ export function UpdateRolesDialog({
         </FormGroup>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>{m.cancel}</Button>
-        <Button onClick={handleSave} disabled={isPending} variant="contained">
+        <Button onClick={onClose} color="secondary">
+          {m.cancel}
+        </Button>
+        <Button onClick={handleSave} disabled={isPending}>
           {m.save}
         </Button>
       </DialogActions>

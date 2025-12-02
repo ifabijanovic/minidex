@@ -258,8 +258,17 @@ export default function AuthenticatedLayout({
             >
               <LogoutButton
                 variant="text"
+                disableRipple
                 fullWidth
-                color="error"
+                color="secondary"
+                sx={{
+                  fontSize: "inherit",
+                  fontWeight: "inherit !important",
+                  lineHeight: "inherit",
+                  fontFamily: "inherit",
+                  textTransform: "inherit",
+                  p: 0,
+                }}
                 onLoggedOut={handleMenuClose}
               >
                 {m.logout}
