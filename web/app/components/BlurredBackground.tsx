@@ -17,7 +17,7 @@ export function BlurredBackground({
   smallScreenImage = "/images/minidex_portrait.jpg",
   largeScreenImage = "/images/minidex_square.jpg",
   blurAmount = "8px",
-  overlayColor = "rgba(0, 0, 0, 0.3)",
+  overlayColor = "rgba(0, 0, 0, 0.25)",
   scale = 1.1,
   ...boxProps
 }: BlurredBackgroundProps) {

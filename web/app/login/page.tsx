@@ -19,6 +19,7 @@ import { BlurredBackground } from "@/app/components/BlurredBackground";
 import { PasswordField } from "@/app/components/PasswordField";
 import { loginMessages as m } from "@/app/login/messages";
 import { useCurrentUser, type UserRole } from "@/app/providers/user-provider";
+import { metallicButtonStyle } from "@/app/theme";
 import { normalizeReturnUrl } from "@/app/utils/normalize-return-url";
 import { ApiError } from "@/lib/api-client";
 import { getFriendlyErrorMessage } from "@/lib/errors";
@@ -141,6 +142,7 @@ function LoginForm() {
           variant="contained"
           size="large"
           disabled={!isFormValid || loginMutation.isPending}
+          sx={metallicButtonStyle}
         >
           {loginMutation.isPending ? m.submitPending : m.submitIdle}
         </Button>

@@ -19,6 +19,7 @@ import { BlurredBackground } from "@/app/components/BlurredBackground";
 import { PasswordField } from "@/app/components/PasswordField";
 import { useCurrentUser, type UserRole } from "@/app/providers/user-provider";
 import { registerMessages as m } from "@/app/register/messages";
+import { metallicButtonStyle } from "@/app/theme";
 import { normalizeReturnUrl } from "@/app/utils/normalize-return-url";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 
@@ -191,6 +192,7 @@ function RegisterForm() {
           variant="contained"
           size="large"
           disabled={!isFormValid || registerMutation.isPending}
+          sx={metallicButtonStyle}
         >
           {registerMutation.isPending ? m.submitPending : m.submitIdle}
         </Button>
