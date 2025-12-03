@@ -22,6 +22,5 @@ func routes(_ app: Application, cacheChecksumSecret: String) throws {
     try app.register(collection: UserAdminController(rolesConverter: .minidex))
 
     try app.register(collection: MeController())
-    try app.register(collection: MiniController())
     try app.register(collection: GameSystemController())
 }

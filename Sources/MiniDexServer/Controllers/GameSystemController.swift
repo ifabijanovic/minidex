@@ -10,20 +10,39 @@ struct GameSystemController: RestCrudController {
     struct DTO: Content {
         var id: UUID
         var name: String
+        var publisher: String?
+        var releaseYear: UInt?
+        var website: URL?
+        var createdByID: UUID
+        var visibility: CatalogItemVisibility
     }
 
     struct PostDTO: Content {
         var name: String
+        var publisher: String?
+        var releaseYear: UInt?
+        var website: URL?
+        var createdByID: UUID
+        var visibility: CatalogItemVisibility
     }
 
     struct PatchDTO: Content {
         var name: String?
+        var publisher: String?
+        var releaseYear: UInt?
+        var website: URL?
+        var visibility: CatalogItemVisibility?
     }
 
     func toDTO(_ dbModel: DBGameSystem) throws -> DTO {
         try .init(
             id: dbModel.requireID(),
             name: dbModel.name,
+            publisher: dbModel.publisher,
+            releaseYear: dbModel.releaseYear,
+            website: dbModel.website.flatMap(URL.init(string:)),
+            createdByID: dbModel.$createdBy.id,
+            visibility: dbModel.visibility,
         )
     }
 
@@ -39,6 +58,14 @@ struct GameSystemController: RestCrudController {
         switch sort {
         case "name":
             query.sort(\.$name, order)
+        case "publisher":
+            query.sort(\.$publisher, order)
+        case "releaseYear":
+            query.sort(\.$releaseYear, order)
+        case "createdByID":
+            query.sort(\.$createdBy.$id, order)
+        case "visibility":
+            query.sort(\.$visibility, order)
         default:
             nil
         }
@@ -53,12 +80,23 @@ struct GameSystemController: RestCrudController {
 
         root.get(use: self.index)
         root.post(use: self.create { dto, _ in
-            .init(name: dto.name)
+            .init(
+                name: dto.name,
+                publisher: dto.publisher,
+                releaseYear: dto.releaseYear,
+                website: dto.website?.absoluteString,
+                createdByID: dto.createdByID,
+                visibility: dto.visibility,
+            )
         })
         root.group(":id") { route in
             route.get(use: self.get)
             route.patch(use: self.update { dbModel, patch in
                 if let value = patch.name { dbModel.name = value }
+                if let value = patch.publisher { dbModel.publisher = value }
+                if let value = patch.releaseYear { dbModel.releaseYear = value }
+                if let value = patch.website { dbModel.website = value.absoluteString }
+                if let value = patch.visibility { dbModel.visibility = value }
             })
             route.delete(use: self.delete)
         }
