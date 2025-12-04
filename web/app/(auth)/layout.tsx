@@ -22,6 +22,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { CinematicBackground } from "@/app/(auth)/components/CinematicBackground";
 import LogoutButton from "@/app/(auth)/components/LogoutButton";
 import {
   ExpandableNavItem,
@@ -277,17 +278,7 @@ export default function AuthenticatedLayout({
           </Menu>
         </Box>
 
-        <Box
-          component="main"
-          sx={{
-            flex: 1,
-            px: { xs: 1, sm: 2, md: 4 },
-            py: { xs: 1, sm: 2 },
-            overflow: "auto",
-          }}
-        >
-          {children}
-        </Box>
+        <CinematicBackground>{children}</CinematicBackground>
       </Box>
     </Box>
   );

@@ -108,7 +108,7 @@ export default function ProfileEditPage() {
 
         <Card>
           <CardContent>
-            <Stack spacing={3}>
+            <Stack spacing={3} sx={{ p: 1 }}>
               {isProfileLoading ? (
                 <Skeleton variant="rectangular" height={56} animation="wave" />
               ) : (
