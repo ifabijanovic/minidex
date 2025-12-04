@@ -1,6 +1,6 @@
 "use client";
 
-import { useCurrentUser } from "@/app/context/user-context";
+import { useCurrentUser } from "@/app/providers/user-provider";
 import { ApiError } from "@/lib/api-client";
 import { useApiQuery } from "@/lib/hooks/use-api-query";
 import { queryKeys } from "@/lib/query-keys";

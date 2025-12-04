@@ -1,7 +1,7 @@
 "use client";
 
 // theme.ts
-import { createTheme } from "@mui/material/styles";
+import { createTheme, type SxProps, type Theme } from "@mui/material/styles";
 
 const primary = {
   lightest: "#D4E0FF",
@@ -339,4 +339,65 @@ const buildTheme = (mode: "light" | "dark") => {
 export const themes = {
   light: buildTheme("light"),
   dark: buildTheme("dark"),
+};
+
+export const metallicButtonStyle: SxProps<Theme> = {
+  background: "linear-gradient(145deg, #4a5568 0%, #2d3748 50%, #1a202c 100%)",
+  border: "2px solid #3b82f6",
+  borderRadius: "8px",
+  color: "#ffffff",
+  fontWeight: 600,
+  textTransform: "none",
+  fontSize: "1.1rem",
+  letterSpacing: "0.5px",
+  boxShadow: `
+    0 0 20px rgba(59, 130, 246, 0.4),
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1)
+  `,
+  textShadow: "0 0 8px rgba(59, 130, 246, 0.8), 0 1px 2px rgba(0, 0, 0, 0.5)",
+  position: "relative",
+  overflow: "hidden",
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: "-100%",
+    width: "100%",
+    height: "100%",
+    background:
+      "linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.3), transparent)",
+    transition: "left 0.5s",
+  },
+  "&:hover": {
+    background:
+      "linear-gradient(145deg, #556175 0%, #374151 50%, #1f2937 100%)",
+    borderColor: "#60a5fa",
+    boxShadow: `
+      0 0 30px rgba(59, 130, 246, 0.6),
+      0 6px 12px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15)
+    `,
+    transform: "translateY(-2px)",
+    "&::before": {
+      left: "100%",
+    },
+  },
+  "&:active": {
+    transform: "translateY(0px)",
+    boxShadow: `
+      0 0 15px rgba(59, 130, 246, 0.5),
+      0 2px 4px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1)
+    `,
+  },
+  "&:disabled": {
+    background:
+      "linear-gradient(145deg, #374151 0%, #1f2937 50%, #111827 100%)",
+    borderColor: "#1e3a8a",
+    color: "rgba(255, 255, 255, 0.5)",
+    boxShadow: "none",
+    textShadow: "none",
+  },
+  transition: "all 0.3s ease",
 };

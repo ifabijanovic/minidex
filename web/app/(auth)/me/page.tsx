@@ -21,7 +21,7 @@ import {
   useCurrentProfile,
 } from "@/app/(auth)/hooks/use-current-profile";
 import { profileEditMessages as m } from "@/app/(auth)/me/messages";
-import { useCurrentUser } from "@/app/context/user-context";
+import { useCurrentUser } from "@/app/providers/user-provider";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 import { queryKeys } from "@/lib/query-keys";
 import { isValidUrl } from "@/lib/utils/url-validation";
@@ -108,7 +108,7 @@ export default function ProfileEditPage() {
 
         <Card>
           <CardContent>
-            <Stack spacing={3}>
+            <Stack spacing={3} sx={{ p: 1 }}>
               {isProfileLoading ? (
                 <Skeleton variant="rectangular" height={56} animation="wave" />
               ) : (

@@ -15,9 +15,11 @@ import { enqueueSnackbar } from "notistack";
 import { FormEvent, Suspense, useState } from "react";
 
 import { AuthCard } from "@/app/components/AuthCard";
+import { IntroBackground } from "@/app/components/IntroBackground";
 import { PasswordField } from "@/app/components/PasswordField";
-import { useCurrentUser, type UserRole } from "@/app/context/user-context";
 import { loginMessages as m } from "@/app/login/messages";
+import { useCurrentUser, type UserRole } from "@/app/providers/user-provider";
+import { metallicButtonStyle } from "@/app/theme";
 import { normalizeReturnUrl } from "@/app/utils/normalize-return-url";
 import { ApiError } from "@/lib/api-client";
 import { getFriendlyErrorMessage } from "@/lib/errors";
@@ -31,15 +33,17 @@ type LoginResponse = {
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <AuthCard maxWidth="sm" elevation={1}>
-          <Typography variant="h5">Loading...</Typography>
-        </AuthCard>
-      }
-    >
-      <LoginForm />
-    </Suspense>
+    <IntroBackground>
+      <Suspense
+        fallback={
+          <AuthCard maxWidth="sm" elevation={1}>
+            <Typography variant="h5">Loading...</Typography>
+          </AuthCard>
+        }
+      >
+        <LoginForm />
+      </Suspense>
+    </IntroBackground>
   );
 }
 
@@ -138,6 +142,7 @@ function LoginForm() {
           variant="contained"
           size="large"
           disabled={!isFormValid || loginMutation.isPending}
+          sx={metallicButtonStyle}
         >
           {loginMutation.isPending ? m.submitPending : m.submitIdle}
         </Button>

@@ -15,9 +15,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChangeEvent, FormEvent, Suspense, useState } from "react";
 
 import { AuthCard } from "@/app/components/AuthCard";
+import { IntroBackground } from "@/app/components/IntroBackground";
 import { PasswordField } from "@/app/components/PasswordField";
-import { useCurrentUser, type UserRole } from "@/app/context/user-context";
+import { useCurrentUser, type UserRole } from "@/app/providers/user-provider";
 import { registerMessages as m } from "@/app/register/messages";
+import { metallicButtonStyle } from "@/app/theme";
 import { normalizeReturnUrl } from "@/app/utils/normalize-return-url";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 
@@ -35,15 +37,17 @@ type RegisterResponse = {
 
 export default function RegisterPage() {
   return (
-    <Suspense
-      fallback={
-        <AuthCard maxWidth="sm" elevation={1}>
-          <Typography variant="h5">Loading...</Typography>
-        </AuthCard>
-      }
-    >
-      <RegisterForm />
-    </Suspense>
+    <IntroBackground>
+      <Suspense
+        fallback={
+          <AuthCard maxWidth="sm" elevation={1}>
+            <Typography variant="h5">Loading...</Typography>
+          </AuthCard>
+        }
+      >
+        <RegisterForm />
+      </Suspense>
+    </IntroBackground>
   );
 }
 
@@ -188,6 +192,7 @@ function RegisterForm() {
           variant="contained"
           size="large"
           disabled={!isFormValid || registerMutation.isPending}
+          sx={metallicButtonStyle}
         >
           {registerMutation.isPending ? m.submitPending : m.submitIdle}
         </Button>

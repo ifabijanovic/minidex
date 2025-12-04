@@ -13,7 +13,7 @@ import {
 import { useState } from "react";
 
 import { updateRolesDialogMessages as m } from "@/app/(auth)/admin/users/messages";
-import { ALL_USER_ROLES, type UserRole } from "@/app/context/user-context";
+import { ALL_USER_ROLES, type UserRole } from "@/app/providers/user-provider";
 
 type UpdateRolesDialogProps = {
   open: boolean;

@@ -4,7 +4,7 @@ import { Button, ButtonProps, CircularProgress } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
-import { useCurrentUser } from "@/app/context/user-context";
+import { useCurrentUser } from "@/app/providers/user-provider";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 
 type LogoutButtonProps = ButtonProps & {

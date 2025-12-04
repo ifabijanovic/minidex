@@ -35,7 +35,7 @@ import { UserAvatar } from "@/app/(auth)/components/UserAvatar";
 import { type CurrentProfile } from "@/app/(auth)/hooks/use-current-profile";
 import { SearchField } from "@/app/components/SearchField";
 import { UuidPreview } from "@/app/components/UuidPreview";
-import { type UserRole } from "@/app/context/user-context";
+import { type UserRole } from "@/app/providers/user-provider";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 import { queryKeys } from "@/lib/query-keys";
 

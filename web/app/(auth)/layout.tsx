@@ -22,6 +22,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { CinematicBackground } from "@/app/(auth)/components/CinematicBackground";
 import LogoutButton from "@/app/(auth)/components/LogoutButton";
 import {
   ExpandableNavItem,
@@ -31,23 +32,39 @@ import {
 import { UserAvatar } from "@/app/(auth)/components/UserAvatar";
 import { useCurrentProfile } from "@/app/(auth)/hooks/use-current-profile";
 import { layoutMessages as m } from "@/app/(auth)/messages";
-import { useCurrentUser } from "@/app/context/user-context";
+import { useCurrentUser } from "@/app/providers/user-provider";
 
 const DRAWER_WIDTH = 260;
 
 function SidebarContent({ isAdmin }: { isAdmin: boolean }) {
   return (
     <>
-      <Box sx={{ px: 2, py: 1 }}>
-        <Typography variant="h5" fontWeight={700} color="primary.main">
-          {m.appName}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {m.adminConsole}
-        </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          pt: { xs: 2, sm: 1 },
+        }}
+      >
+        <Box
+          component="img"
+          src="/images/minidex_square_nobg.webp"
+          alt={m.appName}
+          sx={{
+            maxWidth: "192px",
+            height: "auto",
+            objectFit: "contain",
+          }}
+        />
       </Box>
 
-      <List sx={{ flexGrow: 1, p: 0.5 }}>
+      <List
+        sx={{
+          flexGrow: 1,
+          p: { xs: 2, sm: 0.5 },
+        }}
+      >
         <NavItem label={m.home} href="/home" icon={HomeOutlined} exact />
         {isAdmin && (
           <ExpandableNavItem
@@ -132,7 +149,7 @@ export default function AuthenticatedLayout({
           bgcolor: "background.default",
           px: 2,
           py: 1,
-          gap: 4,
+          gap: 2,
         }}
       >
         <SidebarContent isAdmin={isAdmin} />
@@ -160,7 +177,7 @@ export default function AuthenticatedLayout({
             flexDirection: "column",
             height: "100%",
             bgcolor: "background.default",
-            gap: 4,
+            gap: 2,
           }}
         >
           <SidebarContent isAdmin={isAdmin} />
@@ -177,9 +194,8 @@ export default function AuthenticatedLayout({
             alignItems: "center",
             justifyContent: "space-between",
             px: 2,
-            py: 1,
+            pt: 1,
             bgcolor: "background.default",
-            borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
           }}
         >
           <IconButton
@@ -277,17 +293,7 @@ export default function AuthenticatedLayout({
           </Menu>
         </Box>
 
-        <Box
-          component="main"
-          sx={{
-            flex: 1,
-            px: { xs: 1, sm: 2, md: 4 },
-            py: { xs: 1, sm: 2 },
-            overflow: "auto",
-          }}
-        >
-          {children}
-        </Box>
+        <CinematicBackground>{children}</CinematicBackground>
       </Box>
     </Box>
   );
