@@ -133,7 +133,7 @@ export default function AuthenticatedLayout({
     <Box
       sx={{
         display: "flex",
-        minHeight: "100vh",
+        minHeight: { xs: "100dvh", sm: "100vh" },
         bgcolor: "background.default",
       }}
     >
