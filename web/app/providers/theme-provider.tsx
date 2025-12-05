@@ -2,24 +2,32 @@
 
 import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider } from "@mui/material/styles";
+import { useTheme } from "next-themes";
 import { useEffect, useMemo, useState } from "react";
 
 import { themes } from "@/app/theme";
 
 export function AppThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<"light" | "dark">("light");
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    const match = window.matchMedia("(prefers-color-scheme: dark)");
-    const listener = (event: MediaQueryListEvent) => {
-      setMode(event.matches ? "dark" : "light");
-    };
-    listener(match as unknown as MediaQueryListEvent);
-    match.addEventListener("change", listener);
-    return () => match.removeEventListener("change", listener);
+    setMounted(true);
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
-  const theme = useMemo(() => themes[mode], [mode]);
+  const theme = useMemo(() => {
+    if (mounted) {
+      return resolvedTheme === "light" ? themes.light : themes.dark;
+    } else {
+      return themes.dark;
+    }
+  }, [resolvedTheme, mounted]);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <ThemeProvider theme={theme}>

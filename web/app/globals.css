@@ -1,0 +1,16 @@
+:root {
+  --background-color: #f5f7fa;
+}
+
+html.dark {
+  --background-color: #0c0f14;
+}
+
+body {
+  background-color: var(--background-color);
+  color: #1a1a1a;
+}
+
+html.dark body {
+  color: #ffffff;
+}

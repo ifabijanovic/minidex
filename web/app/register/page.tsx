@@ -17,7 +17,7 @@ import { ChangeEvent, FormEvent, Suspense, useState } from "react";
 import { AuthCard } from "@/app/components/AuthCard";
 import { IntroBackground } from "@/app/components/IntroBackground";
 import { PasswordField } from "@/app/components/PasswordField";
-import { useCurrentUser, type UserRole } from "@/app/providers/user-provider";
+import { useCurrentUser, type UserRole } from "@/app/contexts/user-context";
 import { registerMessages as m } from "@/app/register/messages";
 import { metallicButtonStyle } from "@/app/theme";
 import { normalizeReturnUrl } from "@/app/utils/normalize-return-url";

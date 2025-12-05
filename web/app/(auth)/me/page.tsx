@@ -21,7 +21,7 @@ import {
   useCurrentProfile,
 } from "@/app/(auth)/hooks/use-current-profile";
 import { profileEditMessages as m } from "@/app/(auth)/me/messages";
-import { useCurrentUser } from "@/app/providers/user-provider";
+import { useCurrentUser } from "@/app/contexts/user-context";
 import { useApiMutation } from "@/lib/hooks/use-api-mutation";
 import { queryKeys } from "@/lib/query-keys";
 import { isValidUrl } from "@/lib/utils/url-validation";

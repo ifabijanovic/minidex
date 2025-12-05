@@ -1,6 +1,6 @@
 "use client";
 
-import { UserRole } from "@/app/providers/user-provider";
+import { UserRole } from "@/app/contexts/user-context";
 import { useApiQuery } from "@/lib/hooks/use-api-query";
 import { queryKeys } from "@/lib/query-keys";
 
