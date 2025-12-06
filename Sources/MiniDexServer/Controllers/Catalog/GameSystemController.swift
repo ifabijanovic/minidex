@@ -1,3 +1,4 @@
+import AuthDB
 import AuthAPI
 import Fluent
 import MiniDexDB
@@ -22,7 +23,6 @@ struct GameSystemController: RestCrudController {
         var publisher: String?
         var releaseYear: UInt?
         var website: URL?
-        var createdByID: UUID
         var visibility: CatalogItemVisibility
     }
 
@@ -32,6 +32,14 @@ struct GameSystemController: RestCrudController {
         var releaseYear: UInt?
         var website: URL?
         var visibility: CatalogItemVisibility?
+    }
+
+    func findOne(req: Request) async throws -> DBGameSystem? {
+        try await findOneCatalogItem(req: req, userPath: \.$createdBy, visibilityPath: \.visibility)
+    }
+
+    func findMany(req: Request) throws -> QueryBuilder<DBGameSystem> {
+        try findManyCatalogItems(req: req, userPath: \.$createdBy, visibilityPath: \.$visibility)
     }
 
     func toDTO(_ dbModel: DBGameSystem) throws -> DTO {
@@ -79,13 +87,13 @@ struct GameSystemController: RestCrudController {
             .grouped(RequireAnyRolesMiddleware(roles: [.admin, .cataloguer]))
 
         root.get(use: self.index)
-        root.post(use: self.create { dto, _ in
+        root.post(use: self.create { dto, req in
             .init(
                 name: dto.name,
                 publisher: dto.publisher,
                 releaseYear: dto.releaseYear,
                 website: dto.website?.absoluteString,
-                createdByID: dto.createdByID,
+                createdByID: try req.auth.require(AuthUser.self).id,
                 visibility: dto.visibility,
             )
         })

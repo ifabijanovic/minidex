@@ -23,12 +23,6 @@ struct Migration_0002_CreateGameSystem: AsyncMigration {
 
         if let sqlDB = database as? any SQLDatabase {
             try await sqlDB
-                .create(index: "idx_game_systems_visibility")
-                .on("game_systems")
-                .column("visibility")
-                .run()
-
-            try await sqlDB
                 .create(index: "idx_game_systems_creator_visibility")
                 .on("game_systems")
                 .column("created_by")
@@ -41,10 +35,6 @@ struct Migration_0002_CreateGameSystem: AsyncMigration {
         if let sqlDB = database as? any SQLDatabase {
             try await sqlDB
                 .drop(index: "idx_game_systems_creator_visibility")
-                .run()
-
-            try await sqlDB
-                .drop(index: "idx_game_systems_visibility")
                 .run()
         }
 

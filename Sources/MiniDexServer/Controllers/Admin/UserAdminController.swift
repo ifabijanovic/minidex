@@ -26,7 +26,7 @@ struct UserAdminController: RestCrudController {
         self.rolesConverter = rolesConverter
     }
 
-    func findMany(req: Request) -> QueryBuilder<DBUser> {
+    func findMany(req: Request) throws -> QueryBuilder<DBUser> {
         DBUser
             .query(on: req.db)
             .join(DBUserProfile.self, on: \DBUser.$id == \DBUserProfile.$user.$id, method: .left)
