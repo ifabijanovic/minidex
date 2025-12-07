@@ -68,10 +68,8 @@ struct GameSystemController: RestCrudController {
             query.sort(\.$name, order)
         case "publisher":
             query.sort(\.$publisher, order)
-        case "releaseYear":
+        case "releaseyear":
             query.sort(\.$releaseYear, order)
-        case "createdByID":
-            query.sort(\.$createdBy.$id, order)
         case "visibility":
             query.sort(\.$visibility, order)
         default:
@@ -81,7 +79,7 @@ struct GameSystemController: RestCrudController {
 
     func boot(routes: any RoutesBuilder) throws {
         let root = routes
-            .grouped("v1", "gamesystems")
+            .grouped("v1", "game-systems")
             .grouped(TokenAuthenticator())
             .grouped(AuthUser.guardMiddleware())
 

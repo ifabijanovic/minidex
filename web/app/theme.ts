@@ -332,6 +332,15 @@ const buildTheme = (mode: "light" | "dark") => {
           }),
         },
       },
+      MuiDialogActions: {
+        styleOverrides: {
+          root: {
+            "& .MuiButton-root": {
+              textTransform: "uppercase",
+            },
+          },
+        },
+      },
     },
   });
 };

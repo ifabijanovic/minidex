@@ -97,28 +97,40 @@ async function proxyRequest(
       body,
     });
 
-    // Get response data
+    const status = response.status;
     const contentType = response.headers.get("content-type");
-    let data: unknown;
+    const contentLength = response.headers.get("content-length");
 
-    if (contentType?.includes("application/json")) {
-      data = await response.json();
-    } else {
-      data = await response.text();
+    if (
+      status === 204 ||
+      status === 205 ||
+      status === 304 ||
+      contentLength === "0"
+    ) {
+      return new NextResponse(null, { status });
     }
 
-    // Create response with same status and headers
-    const nextResponse = NextResponse.json(data, {
-      status: response.status,
-    });
+    if (contentType?.includes("application/json")) {
+      const data = await response.json();
+      const nextResponse = NextResponse.json(data, { status });
 
-    // Forward relevant headers (excluding ones that shouldn't be forwarded)
-    const headersToForward = ["content-type"];
-    response.headers.forEach((value, key) => {
-      if (headersToForward.includes(key.toLowerCase())) {
-        nextResponse.headers.set(key, value);
-      }
-    });
+      // Forward relevant headers (excluding ones that shouldn't be forwarded)
+      const headersToForward = ["content-type"];
+      response.headers.forEach((value, key) => {
+        if (headersToForward.includes(key.toLowerCase())) {
+          nextResponse.headers.set(key, value);
+        }
+      });
+
+      return nextResponse;
+    }
+
+    const textData = await response.text();
+    const nextResponse = new NextResponse(textData, { status });
+
+    if (contentType) {
+      nextResponse.headers.set("content-type", contentType);
+    }
 
     return nextResponse;
   } catch (error) {

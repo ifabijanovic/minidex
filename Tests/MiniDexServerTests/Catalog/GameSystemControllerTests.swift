@@ -18,11 +18,11 @@ struct GameSystemControllerTests {
             let app = context.app
             try app.register(collection: GameSystemController())
 
-            try await app.testing().test(.GET, "/v1/gamesystems") { res async throws in
+            try await app.testing().test(.GET, "/v1/game-systems") { res async throws in
                 #expect(res.status == .unauthorized)
             }
 
-            try await app.testing().test(.POST, "/v1/gamesystems") { res async throws in
+            try await app.testing().test(.POST, "/v1/game-systems") { res async throws in
                 #expect(res.status == .unauthorized)
             }
         }
@@ -39,7 +39,7 @@ struct GameSystemControllerTests {
             try app.register(collection: GameSystemController())
 
             for visibility in CatalogItemVisibility.allCases {
-                try await app.testing().test(.POST, "/v1/gamesystems", beforeRequest: { req in
+                try await app.testing().test(.POST, "/v1/game-systems", beforeRequest: { req in
                     req.headers.bearerAuthorization = .init(token: context.token)
                     try req.content.encode(PostDTO(name: "Admin \(visibility)", visibility: visibility))
                 }, afterResponse: { res async throws in
@@ -62,7 +62,7 @@ struct GameSystemControllerTests {
             let app = context.app
             try app.register(collection: GameSystemController())
 
-            try await app.testing().test(.POST, "/v1/gamesystems", beforeRequest: { req in
+            try await app.testing().test(.POST, "/v1/game-systems", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PostDTO(name: "Cataloguer Private", visibility: .`private`))
             }, afterResponse: { res async throws in
@@ -72,7 +72,7 @@ struct GameSystemControllerTests {
                 #expect(dto.visibility == .`private`)
             })
 
-            try await app.testing().test(.POST, "/v1/gamesystems", beforeRequest: { req in
+            try await app.testing().test(.POST, "/v1/game-systems", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PostDTO(name: "Cataloguer Public", visibility: .`public`))
             }, afterResponse: { res async throws in
@@ -82,7 +82,7 @@ struct GameSystemControllerTests {
                 #expect(dto.visibility == .`public`)
             })
 
-            try await app.testing().test(.POST, "/v1/gamesystems", beforeRequest: { req in
+            try await app.testing().test(.POST, "/v1/game-systems", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PostDTO(name: "Cataloguer Limited", visibility: .limited))
             }, afterResponse: { res async throws in
@@ -101,7 +101,7 @@ struct GameSystemControllerTests {
             let app = context.app
             try app.register(collection: GameSystemController())
 
-            try await app.testing().test(.POST, "/v1/gamesystems", beforeRequest: { req in
+            try await app.testing().test(.POST, "/v1/game-systems", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PostDTO(name: "Hobbyist Private", visibility: .`private`))
             }, afterResponse: { res async throws in
@@ -111,7 +111,7 @@ struct GameSystemControllerTests {
                 #expect(dto.visibility == .`private`)
             })
 
-            try await app.testing().test(.POST, "/v1/gamesystems", beforeRequest: { req in
+            try await app.testing().test(.POST, "/v1/game-systems", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PostDTO(name: "Hobbyist Limited", visibility: .limited))
             }, afterResponse: { res async throws in
@@ -121,7 +121,7 @@ struct GameSystemControllerTests {
                 #expect(dto.visibility == .`limited`)
             })
 
-            try await app.testing().test(.POST, "/v1/gamesystems", beforeRequest: { req in
+            try await app.testing().test(.POST, "/v1/game-systems", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PostDTO(name: "Hobbyist Public", visibility: .`public`))
             }, afterResponse: { res async throws in
@@ -157,7 +157,7 @@ struct GameSystemControllerTests {
             let publicItem = DBGameSystem(name: "Public Item", createdByID: otherID, visibility: .`public`)
             try await publicItem.save(on: app.db)
 
-            try await app.testing().test(.GET, "/v1/gamesystems", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
@@ -169,25 +169,25 @@ struct GameSystemControllerTests {
                 #expect(ids.contains(try othersLimited.requireID()))
             })
 
-            try await app.testing().test(.GET, "/v1/gamesystems/\(ownPrivate.requireID())", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems/\(ownPrivate.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
             })
 
-            try await app.testing().test(.GET, "/v1/gamesystems/\(othersPrivate.requireID())", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems/\(othersPrivate.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .notFound)
             })
 
-            try await app.testing().test(.GET, "/v1/gamesystems/\(othersLimited.requireID())", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems/\(othersLimited.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
             })
 
-            try await app.testing().test(.GET, "/v1/gamesystems/\(publicItem.requireID())", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems/\(publicItem.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
@@ -225,7 +225,7 @@ struct GameSystemControllerTests {
             let othersPublic = DBGameSystem(name: "Iris Public", createdByID: otherID, visibility: .`public`)
             try await othersPublic.save(on: app.db)
 
-            try await app.testing().test(.GET, "/v1/gamesystems", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
@@ -239,37 +239,37 @@ struct GameSystemControllerTests {
                 #expect(ids.contains(try othersPublic.requireID()))
             })
 
-            try await app.testing().test(.GET, "/v1/gamesystems/\(try ownPrivate.requireID())", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems/\(try ownPrivate.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
             })
 
-            try await app.testing().test(.GET, "/v1/gamesystems/\(try ownLimited.requireID())", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems/\(try ownLimited.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
             })
 
-            try await app.testing().test(.GET, "/v1/gamesystems/\(try ownPublic.requireID())", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems/\(try ownPublic.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
             })
 
-            try await app.testing().test(.GET, "/v1/gamesystems/\(try othersPrivate.requireID())", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems/\(try othersPrivate.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .notFound)
             })
 
-            try await app.testing().test(.GET, "/v1/gamesystems/\(try othersLimited.requireID())", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems/\(try othersLimited.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .notFound)
             })
 
-            try await app.testing().test(.GET, "/v1/gamesystems/\(try othersPublic.requireID())", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems/\(try othersPublic.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
@@ -308,7 +308,7 @@ struct GameSystemControllerTests {
             try await othersPublic.save(on: app.db)
 
             // Can edit own private (staying private)
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try ownPrivate.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try ownPrivate.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(name: "Gary Private Edit"))
             }, afterResponse: { res async throws in
@@ -318,7 +318,7 @@ struct GameSystemControllerTests {
             })
 
             // Cannot edit own private to limited
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try ownPrivate.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try ownPrivate.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(visibility: .limited))
             }, afterResponse: { res async throws in
@@ -326,7 +326,7 @@ struct GameSystemControllerTests {
             })
 
             // Can edit own limited (staying limited)
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try ownLimited.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try ownLimited.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(name: "Gary Limited Edit"))
             }, afterResponse: { res async throws in
@@ -336,7 +336,7 @@ struct GameSystemControllerTests {
             })
 
             // Cannot edit own limited to private
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try ownLimited.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try ownLimited.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(visibility: .`private`))
             }, afterResponse: { res async throws in
@@ -344,7 +344,7 @@ struct GameSystemControllerTests {
             })
 
             // Can edit public item fields (no visibility change)
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try othersPublic.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try othersPublic.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(name: "Serena Gary Public"))
             }, afterResponse: { res async throws in
@@ -354,7 +354,7 @@ struct GameSystemControllerTests {
             })
 
             // Cannot downgrade public
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try ownPublic.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try ownPublic.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(visibility: .`private`))
             }, afterResponse: { res async throws in
@@ -362,7 +362,7 @@ struct GameSystemControllerTests {
             })
 
             // Cannot edit others' private
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try othersPrivate.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try othersPrivate.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(name: "Serena Gary Private"))
             }, afterResponse: { res async throws in
@@ -370,7 +370,7 @@ struct GameSystemControllerTests {
             })
 
             // Cannot edit others' limited
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try othersLimited.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try othersLimited.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(name: "Serena Gary Limited"))
             }, afterResponse: { res async throws in
@@ -408,7 +408,7 @@ struct GameSystemControllerTests {
             try await othersLimited.save(on: app.db)
 
             // Can edit own private (staying private)
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try ownPrivate.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try ownPrivate.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(name: "Clemont Private Edit"))
             }, afterResponse: { res async throws in
@@ -418,7 +418,7 @@ struct GameSystemControllerTests {
             })
 
             // Can edit own private -> limited
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try ownPrivate.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try ownPrivate.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(visibility: .limited))
             }, afterResponse: { res async throws in
@@ -428,7 +428,7 @@ struct GameSystemControllerTests {
             })
 
             // Can edit own limited (staying limited)
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try ownLimited.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try ownLimited.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(name: "Clemont Limited Edit"))
             }, afterResponse: { res async throws in
@@ -438,7 +438,7 @@ struct GameSystemControllerTests {
             })
 
             // Can edit own limited -> private
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try ownLimited.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try ownLimited.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(visibility: .`private`))
             }, afterResponse: { res async throws in
@@ -448,7 +448,7 @@ struct GameSystemControllerTests {
             })
 
             // Cannot promote to public
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try ownLimited.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try ownLimited.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(visibility: .`public`))
             }, afterResponse: { res async throws in
@@ -456,7 +456,7 @@ struct GameSystemControllerTests {
             })
 
             // Cannot edit others' private
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try othersPrivate.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try othersPrivate.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(name: "May Clemont Private"))
             }, afterResponse: { res async throws in
@@ -464,7 +464,7 @@ struct GameSystemControllerTests {
             })
 
             // Cannot edit others' limited
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try othersLimited.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try othersLimited.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(name: "May Clemont Limited"))
             }, afterResponse: { res async throws in
@@ -472,7 +472,7 @@ struct GameSystemControllerTests {
             })
 
             // Cannot edit public
-            try await app.testing().test(.PATCH, "/v1/gamesystems/\(try ownPublic.requireID())", beforeRequest: { req in
+            try await app.testing().test(.PATCH, "/v1/game-systems/\(try ownPublic.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
                 try req.content.encode(PatchDTO(name: "Clemont Public Edit"))
             }, afterResponse: { res async throws in
@@ -510,35 +510,35 @@ struct GameSystemControllerTests {
             try await othersPublic.save(on: app.db)
 
             // Can delete own private
-            try await app.testing().test(.DELETE, "/v1/gamesystems/\(try ownPrivate.requireID())", beforeRequest: { req in
+            try await app.testing().test(.DELETE, "/v1/game-systems/\(try ownPrivate.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .noContent)
             })
 
             // Can delete own limited
-            try await app.testing().test(.DELETE, "/v1/gamesystems/\(try ownLimited.requireID())", beforeRequest: { req in
+            try await app.testing().test(.DELETE, "/v1/game-systems/\(try ownLimited.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .noContent)
             })
 
             // Can delete public
-            try await app.testing().test(.DELETE, "/v1/gamesystems/\(try othersPublic.requireID())", beforeRequest: { req in
+            try await app.testing().test(.DELETE, "/v1/game-systems/\(try othersPublic.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .noContent)
             })
 
             // Cannot delete others' private
-            try await app.testing().test(.DELETE, "/v1/gamesystems/\(try othersPrivate.requireID())", beforeRequest: { req in
+            try await app.testing().test(.DELETE, "/v1/game-systems/\(try othersPrivate.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .notFound)
             })
 
             // Cannot delete others' limited
-            try await app.testing().test(.DELETE, "/v1/gamesystems/\(try othersLimited.requireID())", beforeRequest: { req in
+            try await app.testing().test(.DELETE, "/v1/game-systems/\(try othersLimited.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .forbidden)
@@ -575,35 +575,35 @@ struct GameSystemControllerTests {
             try await othersLimited.save(on: app.db)
 
             // Can delete own private
-            try await app.testing().test(.DELETE, "/v1/gamesystems/\(try ownPrivate.requireID())", beforeRequest: { req in
+            try await app.testing().test(.DELETE, "/v1/game-systems/\(try ownPrivate.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .noContent)
             })
 
             // Can delete own limited
-            try await app.testing().test(.DELETE, "/v1/gamesystems/\(try ownLimited.requireID())", beforeRequest: { req in
+            try await app.testing().test(.DELETE, "/v1/game-systems/\(try ownLimited.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .noContent)
             })
 
             // Cannot delete public
-            try await app.testing().test(.DELETE, "/v1/gamesystems/\(try ownPublic.requireID())", beforeRequest: { req in
+            try await app.testing().test(.DELETE, "/v1/game-systems/\(try ownPublic.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .forbidden)
             })
 
             // Cannot delete others' private
-            try await app.testing().test(.DELETE, "/v1/gamesystems/\(try othersPrivate.requireID())", beforeRequest: { req in
+            try await app.testing().test(.DELETE, "/v1/game-systems/\(try othersPrivate.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .notFound)
             })
 
             // Cannot delete others' limited
-            try await app.testing().test(.DELETE, "/v1/gamesystems/\(try othersLimited.requireID())", beforeRequest: { req in
+            try await app.testing().test(.DELETE, "/v1/game-systems/\(try othersLimited.requireID())", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .notFound)
@@ -631,7 +631,7 @@ struct GameSystemControllerTests {
             try await DBGameSystem(name: "Dungeons & Dragons", createdByID: userID, visibility: .`public`).save(on: app.db)
 
             // filter by "Warhammer", sort by name descending, limit to 2, page 0
-            try await app.testing().test(.GET, "/v1/gamesystems?q=Warhammer&sort=name&order=desc&limit=2&page=0", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems?q=Warhammer&sort=name&order=desc&limit=2&page=0", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
@@ -648,7 +648,7 @@ struct GameSystemControllerTests {
             })
 
             // same filter and sort, page 1 and limit 3
-            try await app.testing().test(.GET, "/v1/gamesystems?q=Warhammer&sort=name&order=desc&limit=3&page=1", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems?q=Warhammer&sort=name&order=desc&limit=3&page=1", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: context.token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)

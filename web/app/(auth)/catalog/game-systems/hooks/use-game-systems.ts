@@ -1,20 +1,23 @@
 "use client";
 
-import { useCurrentUser, UserRole } from "@/app/contexts/user-context";
+import { useCurrentUser } from "@/app/contexts/user-context";
 import { useApiQuery } from "@/lib/hooks/use-api-query";
 import { queryKeys } from "@/lib/query-keys";
 
-export type User = {
-  userID: string;
-  roles: UserRole[];
-  isActive: boolean;
-  profileID?: string;
-  displayName?: string;
-  avatarURL?: string;
+export type CatalogItemVisibility = "private" | "limited" | "public";
+
+export type GameSystem = {
+  id: string;
+  name: string;
+  publisher?: string | null;
+  releaseYear?: number | null;
+  website?: string | null;
+  createdByID: string;
+  visibility: CatalogItemVisibility;
 };
 
-export type PagedUsersResponse = {
-  data: User[];
+export type PagedGameSystemsResponse = {
+  data: GameSystem[];
   page: number;
   limit: number;
   sort: string | null;
@@ -22,7 +25,7 @@ export type PagedUsersResponse = {
   query: string | null;
 };
 
-type UseUsersOptions = {
+type UseGameSystemsOptions = {
   page?: number;
   limit?: number;
   sort?: string;
@@ -31,8 +34,9 @@ type UseUsersOptions = {
   enabled?: boolean;
 };
 
-export function useUsers(options?: UseUsersOptions) {
+export function useGameSystems(options?: UseGameSystemsOptions) {
   const { user } = useCurrentUser();
+
   const {
     page = 0,
     limit = 25,
@@ -58,9 +62,9 @@ export function useUsers(options?: UseUsersOptions) {
     params.q = query;
   }
 
-  return useApiQuery<PagedUsersResponse>({
-    queryKey: queryKeys.users(page, limit, sort, order, query),
-    path: "/v1/admin/users",
+  return useApiQuery<PagedGameSystemsResponse>({
+    queryKey: queryKeys.gameSystems(page, limit, sort, order, query),
+    path: "/v1/game-systems",
     request: { params },
     enabled: user !== null && optionsEnabled,
   });

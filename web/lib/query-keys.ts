@@ -7,4 +7,11 @@ export const queryKeys = {
     order?: "asc" | "desc",
     query?: string,
   ) => ["users", page, limit, sort, order, query] as const,
+  gameSystems: (
+    page: number,
+    limit: number,
+    sort?: string,
+    order?: "asc" | "desc",
+    query?: string,
+  ) => ["game-systems", page, limit, sort, order, query] as const,
 };

@@ -329,11 +329,7 @@ export default function UsersManagementPage() {
                         {m.profileID}
                       </Typography>
                     </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="subtitle2" fontWeight={600}>
-                        {m.actions}
-                      </Typography>
-                    </TableCell>
+                    <TableCell align="right" />
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -358,7 +354,7 @@ export default function UsersManagementPage() {
                         <TableCell>
                           <Skeleton variant="text" width="100%" />
                         </TableCell>
-                        <TableCell>
+                        <TableCell align="right">
                           <Skeleton variant="circular" width={32} height={32} />
                         </TableCell>
                       </TableRow>

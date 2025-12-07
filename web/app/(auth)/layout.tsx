@@ -1,10 +1,12 @@
 "use client";
 
 import HomeOutlined from "@mui/icons-material/HomeOutlined";
+import Inventory2Outlined from "@mui/icons-material/Inventory2Outlined";
 import MenuIcon from "@mui/icons-material/Menu";
 import PeopleOutlined from "@mui/icons-material/PeopleOutlined";
 import PersonOutlined from "@mui/icons-material/PersonOutlined";
 import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
+import ShieldOutlined from "@mui/icons-material/ShieldOutlined";
 import {
   Box,
   Divider,
@@ -67,6 +69,17 @@ function SidebarContent({ isAdmin }: { isAdmin: boolean }) {
         }}
       >
         <NavItem label={m.home} href="/home" icon={HomeOutlined} exact />
+        <ExpandableNavItem
+          label={m.catalog}
+          icon={Inventory2Outlined}
+          basePath="/catalog"
+        >
+          <NavItemChild
+            label={m.gameSystems}
+            href="/catalog/game-systems"
+            icon={ShieldOutlined}
+          />
+        </ExpandableNavItem>
         {isAdmin && (
           <ExpandableNavItem
             label={m.admin}

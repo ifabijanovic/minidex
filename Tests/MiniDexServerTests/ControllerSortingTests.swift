@@ -28,7 +28,7 @@ struct ControllerSortingTests {
             try await DBGameSystem(name: "Alpha System", createdByID: context.userID).save(on: app.db)
             try await DBGameSystem(name: "Beta System", createdByID: context.userID).save(on: app.db)
 
-            try await app.testing().test(.GET, "/v1/gamesystems?sort=name", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems?sort=name", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
@@ -58,7 +58,7 @@ struct ControllerSortingTests {
             try await DBGameSystem(name: "Alpha System", createdByID: context.userID).save(on: app.db)
             try await DBGameSystem(name: "Beta System", createdByID: context.userID).save(on: app.db)
 
-            try await app.testing().test(.GET, "/v1/gamesystems?sort=Name&order=asc", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems?sort=Name&order=asc", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
@@ -88,7 +88,7 @@ struct ControllerSortingTests {
             try await DBGameSystem(name: "Beta System", createdByID: context.userID).save(on: app.db)
             try await DBGameSystem(name: "Zebra System", createdByID: context.userID).save(on: app.db)
 
-            try await app.testing().test(.GET, "/v1/gamesystems?sort=name&order=desc", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems?sort=name&order=desc", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)

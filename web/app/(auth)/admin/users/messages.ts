@@ -10,7 +10,6 @@ export const usersPageMessages = {
   profileID: "Profile ID",
   noUsers: "No users found",
   loading: "Loading users...",
-  actions: "Actions",
   updateRoles: "Update Roles",
   updateProfile: "Update Profile",
   activate: "Activate",
@@ -26,14 +25,14 @@ export const usersPageMessages = {
 
 export const updateRolesDialogMessages = {
   title: "Update Roles",
-  save: "SAVE",
-  cancel: "CANCEL",
+  save: "Save",
+  cancel: "Cancel",
 };
 
 export const updateProfileDialogMessages = {
   title: "Update Profile",
-  save: "SAVE",
-  cancel: "CANCEL",
+  save: "Save",
+  cancel: "Cancel",
   displayNameLabel: "Display Name",
   displayNamePlaceholder: "Enter display name",
   avatarUrlLabel: "Avatar URL",

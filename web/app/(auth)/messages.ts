@@ -1,7 +1,8 @@
 export const layoutMessages = {
   appName: "MiniDex",
-  adminConsole: "Admin Console",
   home: "Home",
+  catalog: "Catalog",
+  gameSystems: "Game systems",
   admin: "Admin",
   users: "Users",
   profile: "Profile",
