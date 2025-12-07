@@ -1,16 +1,12 @@
 "use client";
 
 import Add from "@mui/icons-material/Add";
-import MoreVert from "@mui/icons-material/MoreVert";
 import {
   Box,
   Button,
   Card,
   CardContent,
   Container,
-  IconButton,
-  Menu,
-  MenuItem,
   Paper,
   Skeleton,
   Stack,
@@ -29,6 +25,7 @@ import { useDebounce } from "@uidotdev/usehooks";
 import { enqueueSnackbar } from "notistack";
 import { useMemo, useState } from "react";
 
+import { CatalogItemRowActions } from "@/app/(auth)/catalog/components/CatalogItemRowActions";
 import { DeleteGameSystemDialog } from "@/app/(auth)/catalog/game-systems/components/DeleteGameSystemDialog";
 import { GameSystemFormDialog } from "@/app/(auth)/catalog/game-systems/components/GameSystemFormDialog";
 import {
@@ -64,11 +61,6 @@ export default function GameSystemsPage() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-
-  const [menuAnchor, setMenuAnchor] = useState<{
-    element: HTMLElement;
-    gameSystemId: string;
-  } | null>(null);
 
   const [formDialog, setFormDialog] = useState<{
     mode: "create" | "edit";
@@ -107,7 +99,6 @@ export default function GameSystemsPage() {
         variant: "success",
       });
       setFormDialog(null);
-      setMenuAnchor(null);
     },
   });
 
@@ -117,7 +108,6 @@ export default function GameSystemsPage() {
       await queryClient.invalidateQueries({ queryKey: ["game-systems"] });
       enqueueSnackbar(m.deleteSuccess, { variant: "success" });
       setDeleteDialog(null);
-      setMenuAnchor(null);
     },
   });
 
@@ -164,39 +154,8 @@ export default function GameSystemsPage() {
     }
   };
 
-  const handleMenuOpen = (
-    event: React.MouseEvent<HTMLElement>,
-    gameSystemId: string,
-  ) => {
-    setMenuAnchor({ element: event.currentTarget, gameSystemId });
-  };
-
-  const handleMenuClose = () => {
-    setMenuAnchor(null);
-  };
-
   const handleAdd = () => {
     setFormDialog({ mode: "create" });
-  };
-
-  const getSelectedGameSystem = () => {
-    if (!menuAnchor) return null;
-    return gameSystems.find((item) => item.id === menuAnchor.gameSystemId);
-  };
-
-  const handleEdit = () => {
-    const selected = getSelectedGameSystem();
-    if (selected) {
-      setFormDialog({ mode: "edit", gameSystem: selected });
-    }
-    handleMenuClose();
-  };
-
-  const handleDelete = () => {
-    if (menuAnchor) {
-      setDeleteDialog({ gameSystemId: menuAnchor.gameSystemId });
-    }
-    handleMenuClose();
   };
 
   const handleFormClose = () => {
@@ -327,11 +286,7 @@ export default function GameSystemsPage() {
                         </Typography>
                       </TableCell>
                     )}
-                    <TableCell align="right">
-                      <Typography variant="subtitle2" fontWeight={600}>
-                        {m.actions}
-                      </Typography>
-                    </TableCell>
+                    <TableCell align="right" />
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -427,14 +382,22 @@ export default function GameSystemsPage() {
                           </TableCell>
                         )}
                         <TableCell align="right">
-                          <IconButton
-                            size="small"
-                            onClick={(event) =>
-                              handleMenuOpen(event, gameSystem.id)
+                          <CatalogItemRowActions
+                            itemId={gameSystem.id}
+                            createdById={gameSystem.createdByID}
+                            visibility={gameSystem.visibility}
+                            currentUserId={user?.userId}
+                            currentUserRoles={user?.roles ?? []}
+                            onEdit={() =>
+                              setFormDialog({
+                                mode: "edit",
+                                gameSystem,
+                              })
                             }
-                          >
-                            <MoreVert fontSize="small" />
-                          </IconButton>
+                            onDelete={() =>
+                              setDeleteDialog({ gameSystemId: gameSystem.id })
+                            }
+                          />
                         </TableCell>
                       </TableRow>
                     ))
@@ -455,21 +418,11 @@ export default function GameSystemsPage() {
           </CardContent>
         </Card>
 
-        <Menu
-          anchorEl={menuAnchor?.element ?? null}
-          open={Boolean(menuAnchor)}
-          onClose={handleMenuClose}
-          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-          transformOrigin={{ vertical: "top", horizontal: "right" }}
-        >
-          <MenuItem onClick={handleEdit}>{m.edit}</MenuItem>
-          <MenuItem onClick={handleDelete}>{m.delete}</MenuItem>
-        </Menu>
-
         {formDialog && (
           <GameSystemFormDialog
             open={true}
             mode={formDialog.mode}
+            userRoles={user?.roles ?? []}
             initialValues={
               formDialog.gameSystem
                 ? {

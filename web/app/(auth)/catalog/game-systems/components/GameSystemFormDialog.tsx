@@ -6,14 +6,15 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  MenuItem,
   Stack,
   TextField,
 } from "@mui/material";
 import { FormEvent, useState } from "react";
 
+import { CatalogItemVisibilityField } from "@/app/(auth)/catalog/components/CatalogItemVisibilityField";
 import { type CatalogItemVisibility } from "@/app/(auth)/catalog/game-systems/hooks/use-game-systems";
 import { gameSystemFormMessages as m } from "@/app/(auth)/catalog/game-systems/messages";
+import { type UserRole } from "@/app/contexts/user-context";
 import { isValidUrl } from "@/lib/utils/url-validation";
 
 type GameSystemFormValues = {
@@ -28,21 +29,17 @@ type GameSystemFormDialogProps = {
   open: boolean;
   mode: "create" | "edit";
   initialValues?: Partial<GameSystemFormValues>;
+  userRoles: UserRole[];
   onClose: () => void;
   onSave: (values: GameSystemFormValues) => void;
   isPending?: boolean;
 };
 
-const VISIBILITY_OPTIONS: CatalogItemVisibility[] = [
-  "private",
-  "limited",
-  "public",
-];
-
 export function GameSystemFormDialog({
   open,
   mode,
   initialValues,
+  userRoles,
   onClose,
   onSave,
   isPending = false,
@@ -173,23 +170,13 @@ export function GameSystemFormDialog({
             InputLabelProps={{ shrink: true, required: false }}
           />
 
-          <TextField
-            select
-            label={m.visibilityLabel}
+          <CatalogItemVisibilityField
+            mode={mode}
             value={visibility}
-            onChange={(event) =>
-              setVisibility(event.target.value as CatalogItemVisibility)
-            }
-            fullWidth
+            userRoles={userRoles}
             disabled={isFormDisabled}
-            InputLabelProps={{ shrink: true, required: true }}
-          >
-            {VISIBILITY_OPTIONS.map((option) => (
-              <MenuItem key={option} value={option}>
-                {m.visibilityOptions[option]}
-              </MenuItem>
-            ))}
-          </TextField>
+            onChange={setVisibility}
+          />
         </Stack>
       </DialogContent>
       <DialogActions>
