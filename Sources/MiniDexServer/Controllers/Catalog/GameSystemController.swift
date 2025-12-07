@@ -68,10 +68,8 @@ struct GameSystemController: RestCrudController {
             query.sort(\.$name, order)
         case "publisher":
             query.sort(\.$publisher, order)
-        case "releaseYear":
+        case "releaseyear":
             query.sort(\.$releaseYear, order)
-        case "createdByID":
-            query.sort(\.$createdBy.$id, order)
         case "visibility":
             query.sort(\.$visibility, order)
         default:
