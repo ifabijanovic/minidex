@@ -5,6 +5,7 @@ public enum MiniDexDB {
         [
             Migration_0001_CreateUserProfile(),
             Migration_0002_CreateGameSystem(),
+            Migration_0003_CreateFaction(),
         ]
     }
 }
