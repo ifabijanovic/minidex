@@ -100,7 +100,7 @@ export default function GameSystemsPage() {
   >({
     method: (variables) => (variables.id ? "patch" : "post"),
     path: (variables) =>
-      variables.id ? `/v1/gamesystems/${variables.id}` : "/v1/gamesystems",
+      variables.id ? `/v1/game-systems/${variables.id}` : "/v1/game-systems",
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({ queryKey: ["game-systems"] });
       enqueueSnackbar(variables.id ? m.updateSuccess : m.createSuccess, {
@@ -112,7 +112,7 @@ export default function GameSystemsPage() {
   });
 
   const deleteMutation = useApiDeleteMutation<void>({
-    path: deleteDialog ? `/v1/gamesystems/${deleteDialog.gameSystemId}` : "",
+    path: deleteDialog ? `/v1/game-systems/${deleteDialog.gameSystemId}` : "",
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["game-systems"] });
       enqueueSnackbar(m.deleteSuccess, { variant: "success" });

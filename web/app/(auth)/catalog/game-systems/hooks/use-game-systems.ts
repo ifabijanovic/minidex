@@ -53,7 +53,7 @@ export function useGameSystems(options?: UseGameSystemsOptions) {
 
   return useApiQuery<PagedGameSystemsResponse>({
     queryKey: queryKeys.gameSystems(page, limit, sort, order, query),
-    path: "/v1/gamesystems",
+    path: "/v1/game-systems",
     request: { params },
   });
 }

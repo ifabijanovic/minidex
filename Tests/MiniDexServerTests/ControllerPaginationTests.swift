@@ -30,7 +30,7 @@ struct ControllerPaginationTests {
                 try await gameSystem.save(on: app.db)
             }
 
-            try await app.testing().test(.GET, "/v1/gamesystems", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
@@ -59,7 +59,7 @@ struct ControllerPaginationTests {
                 try await gameSystem.save(on: app.db)
             }
 
-            try await app.testing().test(.GET, "/v1/gamesystems?limit=5", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems?limit=5", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
@@ -94,7 +94,7 @@ struct ControllerPaginationTests {
 
             // Get first page
             var firstPageResponse: PagedResponse<DTO>?
-            try await app.testing().test(.GET, "/v1/gamesystems?limit=5&page=0", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems?limit=5&page=0", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)
@@ -112,7 +112,7 @@ struct ControllerPaginationTests {
 
             // Get second page
             var secondPageResponse: PagedResponse<DTO>?
-            try await app.testing().test(.GET, "/v1/gamesystems?limit=5&page=1", beforeRequest: { req in
+            try await app.testing().test(.GET, "/v1/game-systems?limit=5&page=1", beforeRequest: { req in
                 req.headers.bearerAuthorization = .init(token: token)
             }, afterResponse: { res async throws in
                 #expect(res.status == .ok)

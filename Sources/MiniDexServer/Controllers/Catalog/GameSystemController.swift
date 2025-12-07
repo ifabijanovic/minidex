@@ -81,7 +81,7 @@ struct GameSystemController: RestCrudController {
 
     func boot(routes: any RoutesBuilder) throws {
         let root = routes
-            .grouped("v1", "gamesystems")
+            .grouped("v1", "game-systems")
             .grouped(TokenAuthenticator())
             .grouped(AuthUser.guardMiddleware())
 
