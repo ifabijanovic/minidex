@@ -1,6 +1,7 @@
 "use client";
 
-import { MenuItem, TextField } from "@mui/material";
+import { Alert, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { useEffect, useMemo, useRef } from "react";
 
 import { catalogVisibilityMessages as m } from "@/app/(auth)/catalog/components/messages";
 import { type CatalogItemVisibility } from "@/app/(auth)/catalog/game-systems/hooks/use-game-systems";
@@ -40,7 +41,7 @@ export function CatalogItemVisibilityField({
   const isVisibilityReadOnly =
     mode === "edit" && !isAdmin && isCataloguer && value === "public";
 
-  const visibilityOptions: CatalogItemVisibility[] = (() => {
+  const visibilityOptions: CatalogItemVisibility[] = useMemo(() => {
     if (isAdmin) return ALL_VISIBILITIES;
 
     if (mode === "create") {
@@ -77,37 +78,69 @@ export function CatalogItemVisibilityField({
     }
 
     return ["private"];
-  })();
+  }, [isAdmin, isCataloguer, isHobbyist, mode, value]);
+
+  const didSetInitialDefault = useRef(false);
+
+  useEffect(() => {
+    if (mode !== "create" || didSetInitialDefault.current) return;
+    if ((isAdmin || isCataloguer) && visibilityOptions.includes("public")) {
+      onChange("public");
+    } else if (isHobbyist && visibilityOptions.includes("limited")) {
+      onChange("limited");
+    }
+    didSetInitialDefault.current = true;
+  }, [mode, isAdmin, isCataloguer, isHobbyist, visibilityOptions, onChange]);
 
   if (isVisibilityReadOnly) {
     return (
-      <TextField
-        label={m.visibilityLabel}
-        value={VISIBILITY_LABELS[value]}
-        fullWidth
-        disabled
-        InputLabelProps={{ shrink: true, required: true }}
-      />
+      <Stack spacing={1.5}>
+        <TextField
+          label={m.visibilityLabel}
+          value={VISIBILITY_LABELS[value]}
+          fullWidth
+          disabled
+          InputLabelProps={{ shrink: true, required: true }}
+        />
+        <Alert severity="info" variant="outlined">
+          <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+            {m.visibilityHelp.title}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {m.visibilityHelp[value]}
+          </Typography>
+        </Alert>
+      </Stack>
     );
   }
 
   return (
-    <TextField
-      select
-      label={m.visibilityLabel}
-      value={value}
-      onChange={(event) =>
-        onChange(event.target.value as CatalogItemVisibility)
-      }
-      fullWidth
-      disabled={disabled}
-      InputLabelProps={{ shrink: true, required: true }}
-    >
-      {visibilityOptions.map((option) => (
-        <MenuItem key={option} value={option}>
-          {VISIBILITY_LABELS[option]}
-        </MenuItem>
-      ))}
-    </TextField>
+    <Stack spacing={1.5}>
+      <TextField
+        select
+        label={m.visibilityLabel}
+        value={value}
+        onChange={(event) =>
+          onChange(event.target.value as CatalogItemVisibility)
+        }
+        fullWidth
+        disabled={disabled}
+        InputLabelProps={{ shrink: true, required: true }}
+      >
+        {visibilityOptions.map((option) => (
+          <MenuItem key={option} value={option}>
+            {VISIBILITY_LABELS[option]}
+          </MenuItem>
+        ))}
+      </TextField>
+      <Alert severity="info" variant="outlined">
+        <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+          {m.visibilityHelp.title}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {m.visibilityHelp[value]}
+        </Typography>
+      </Alert>
+    </Stack>
   );
 }

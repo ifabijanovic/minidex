@@ -26,7 +26,6 @@ import { enqueueSnackbar } from "notistack";
 import { useMemo, useState } from "react";
 
 import { CatalogItemRowActions } from "@/app/(auth)/catalog/components/CatalogItemRowActions";
-import { DeleteGameSystemDialog } from "@/app/(auth)/catalog/game-systems/components/DeleteGameSystemDialog";
 import { GameSystemFormDialog } from "@/app/(auth)/catalog/game-systems/components/GameSystemFormDialog";
 import {
   type CatalogItemVisibility,
@@ -34,6 +33,7 @@ import {
   useGameSystems,
 } from "@/app/(auth)/catalog/game-systems/hooks/use-game-systems";
 import { gameSystemsMessages as m } from "@/app/(auth)/catalog/game-systems/messages";
+import { DeleteConfirmationDialog } from "@/app/(auth)/components/DeleteConfirmationDialog";
 import { SearchField } from "@/app/components/SearchField";
 import { UuidPreview } from "@/app/components/UuidPreview";
 import { useCurrentUser } from "@/app/contexts/user-context";
@@ -441,8 +441,10 @@ export default function GameSystemsPage() {
         )}
 
         {deleteDialog && (
-          <DeleteGameSystemDialog
+          <DeleteConfirmationDialog
             open={true}
+            title={m.deleteTitle}
+            description={m.deleteDescription}
             onClose={() => setDeleteDialog(null)}
             onConfirm={handleDeleteConfirm}
             isPending={deleteMutation.isPending}

@@ -180,9 +180,7 @@ export function GameSystemFormDialog({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="secondary">
-          {m.cancel}
-        </Button>
+        <Button onClick={onClose}>{m.cancel}</Button>
         <Button onClick={handleSubmit} disabled={isFormDisabled}>
           {m.save}
         </Button>

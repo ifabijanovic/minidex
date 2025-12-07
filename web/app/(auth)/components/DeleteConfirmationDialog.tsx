@@ -9,29 +9,33 @@ import {
   DialogTitle,
 } from "@mui/material";
 
-import { deleteGameSystemMessages as m } from "@/app/(auth)/catalog/game-systems/messages";
+import { deleteConfirmationDialogMessages as m } from "@/app/(auth)/components/messages";
 
-type DeleteGameSystemDialogProps = {
+type DeleteConfirmationDialogProps = {
   open: boolean;
+  title: string;
+  description: string;
   onClose: () => void;
   onConfirm: () => void;
   isPending?: boolean;
 };
 
-export function DeleteGameSystemDialog({
+export function DeleteConfirmationDialog({
   open,
+  title,
+  description,
   onClose,
   onConfirm,
   isPending = false,
-}: DeleteGameSystemDialogProps) {
+}: DeleteConfirmationDialogProps) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>{m.title}</DialogTitle>
+      <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        <DialogContentText>{m.description}</DialogContentText>
+        <DialogContentText>{description}</DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="secondary" disabled={isPending}>
+        <Button onClick={onClose} disabled={isPending}>
           {m.cancel}
         </Button>
         <Button onClick={onConfirm} color="error" disabled={isPending}>

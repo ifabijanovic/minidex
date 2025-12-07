@@ -10,6 +10,9 @@ export const gameSystemsMessages = {
   add: "Add Game System",
   searchPlaceholder: "Search by name",
   noResults: "No game systems found",
+  deleteTitle: "Delete Game System",
+  deleteDescription:
+    "Are you sure you want to delete this game system? This action cannot be undone.",
   createSuccess: "Game system created successfully",
   updateSuccess: "Game system updated successfully",
   deleteSuccess: "Game system deleted successfully",
@@ -31,12 +34,4 @@ export const gameSystemFormMessages = {
   nameRequired: "Name is required",
   websiteError: "Please enter a valid URL",
   releaseYearError: "Please enter a valid year",
-};
-
-export const deleteGameSystemMessages = {
-  title: "Delete Game System",
-  description:
-    "Are you sure you want to delete this game system? This action cannot be undone.",
-  cancel: "Cancel",
-  confirm: "Delete",
 };
