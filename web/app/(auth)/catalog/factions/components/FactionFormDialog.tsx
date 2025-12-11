@@ -12,9 +12,15 @@ import {
 import { FormEvent, useState } from "react";
 
 import { CatalogItemVisibilityField } from "@/app/(auth)/catalog/components/CatalogItemVisibilityField";
+import { type Faction } from "@/app/(auth)/catalog/factions/hooks/use-factions";
 import { factionFormMessages as m } from "@/app/(auth)/catalog/factions/messages";
 import { type CatalogItemVisibility } from "@/app/(auth)/catalog/game-systems/hooks/use-game-systems";
+import {
+  LookupDropdown,
+  type LookupOption,
+} from "@/app/(auth)/components/LookupDropdown";
 import { type UserRole } from "@/app/contexts/user-context";
+import { api } from "@/lib/api-client";
 
 type FactionFormValues = {
   name: string;
@@ -26,7 +32,13 @@ type FactionFormValues = {
 type FactionFormDialogProps = {
   open: boolean;
   mode: "create" | "edit";
-  initialValues?: Partial<FactionFormValues>;
+  initialValues?: Partial<
+    FactionFormValues & {
+      gameSystemName?: string | null;
+      parentFactionName?: string | null;
+    }
+  >;
+  currentFactionId?: string | null;
   userRoles: UserRole[];
   onClose: () => void;
   onSave: (values: FactionFormValues) => void;
@@ -37,32 +49,47 @@ export function FactionFormDialog({
   open,
   mode,
   initialValues,
+  currentFactionId,
   userRoles,
   onClose,
   onSave,
   isPending = false,
 }: FactionFormDialogProps) {
   const [name, setName] = useState(initialValues?.name ?? "");
-  const [gameSystemID, setGameSystemID] = useState(
-    initialValues?.gameSystemID ?? "",
-  );
-  const [parentFactionID, setParentFactionID] = useState(
-    initialValues?.parentFactionID ?? "",
+  const [gameSystem, setGameSystem] = useState<LookupOption | null>(() => {
+    if (initialValues?.gameSystemID) {
+      return {
+        id: initialValues.gameSystemID,
+        name: initialValues.gameSystemName ?? initialValues.gameSystemID,
+      };
+    }
+    return null;
+  });
+  const [parentFaction, setParentFaction] = useState<LookupOption | null>(
+    () => {
+      if (initialValues?.parentFactionID) {
+        return {
+          id: initialValues.parentFactionID,
+          name:
+            initialValues.parentFactionName ?? initialValues.parentFactionID,
+        };
+      }
+      return null;
+    },
   );
   const [visibility, setVisibility] = useState<CatalogItemVisibility>(
     initialValues?.visibility ?? "private",
   );
 
   const [nameError, setNameError] = useState<string | null>(null);
-
   const dialogTitle = mode === "create" ? m.createTitle : m.editTitle;
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
 
     const trimmedName = name.trim();
-    const trimmedGameSystemID = gameSystemID.trim();
-    const trimmedParentFactionID = parentFactionID.trim();
+    const trimmedGameSystemID = gameSystem?.id.trim() ?? "";
+    const trimmedParentFactionID = parentFaction?.id.trim() ?? "";
 
     let hasError = false;
 
@@ -107,24 +134,33 @@ export function FactionFormDialog({
             InputLabelProps={{ shrink: true, required: true }}
           />
 
-          <TextField
+          <LookupDropdown
             label={m.gameSystemLabel}
             placeholder={m.gameSystemPlaceholder}
-            value={gameSystemID}
-            onChange={(event) => setGameSystemID(event.target.value)}
-            fullWidth
+            value={gameSystem}
+            onChange={(option) => setGameSystem(option)}
+            fetcher={async (q) => {
+              const res = await api.get<{
+                data: { id: string; name: string }[];
+              }>("/v1/game-systems", { params: { q, limit: 10 } });
+              return res.data;
+            }}
             disabled={isFormDisabled}
-            InputLabelProps={{ shrink: true, required: false }}
           />
 
-          <TextField
+          <LookupDropdown
             label={m.parentFactionLabel}
             placeholder={m.parentFactionPlaceholder}
-            value={parentFactionID}
-            onChange={(event) => setParentFactionID(event.target.value)}
-            fullWidth
+            value={parentFaction}
+            onChange={(option) => setParentFaction(option)}
+            excludeIds={currentFactionId ? [currentFactionId] : undefined}
+            fetcher={async (q) => {
+              const res = await api.get<{ data: Faction[] }>("/v1/factions", {
+                params: { q, limit: 10 },
+              });
+              return res.data.map((f) => ({ id: f.id, name: f.name }));
+            }}
             disabled={isFormDisabled}
-            InputLabelProps={{ shrink: true, required: false }}
           />
 
           <CatalogItemVisibilityField

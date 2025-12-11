@@ -25,9 +25,9 @@ export const factionFormMessages = {
   nameLabel: "Name",
   namePlaceholder: "Enter name",
   gameSystemLabel: "Game System ID",
-  gameSystemPlaceholder: "Optional game system ID (UUID)",
+  gameSystemPlaceholder: "Select a game system",
   parentFactionLabel: "Parent Faction ID",
-  parentFactionPlaceholder: "Optional parent faction ID (UUID)",
+  parentFactionPlaceholder: "Select a faction",
   visibilityLabel: "Visibility",
   nameRequired: "Name is required",
 };

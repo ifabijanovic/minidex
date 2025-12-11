@@ -92,15 +92,15 @@ struct FactionController: RestCrudController {
     func indexSort(
         _ sort: String,
         _ order: DatabaseQuery.Sort.Direction,
-        query: QueryBuilder<DBGameSystem>
-    ) -> QueryBuilder<DBGameSystem>? {
+        query: QueryBuilder<DBFaction>
+    ) -> QueryBuilder<DBFaction>? {
         switch sort {
         case "name":
             query.sort(\.$name, order)
         case "gamesystemname":
-            query.sort(DBGameSystem.self, \.$name)
-        case "parentFactionName":
-            query.sort(DBParentFaction.self, \.$name)
+            query.sort(DBGameSystem.self, \.$name, order)
+        case "parentfactionname":
+            query.sort(DBParentFaction.self, \.$name, order)
         case "visibility":
             query.sort(\.$visibility, order)
         default:

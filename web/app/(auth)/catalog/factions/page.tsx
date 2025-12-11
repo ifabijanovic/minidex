@@ -406,13 +406,17 @@ export default function FactionsPage() {
           <FactionFormDialog
             open={true}
             mode={formDialog.mode}
+            currentFactionId={formDialog.faction?.id ?? null}
             userRoles={user?.roles ?? []}
             initialValues={
               formDialog.faction
                 ? {
                     name: formDialog.faction.name,
                     gameSystemID: formDialog.faction.gameSystemID ?? null,
+                    gameSystemName: formDialog.faction.gameSystemName ?? null,
                     parentFactionID: formDialog.faction.parentFactionID ?? null,
+                    parentFactionName:
+                      formDialog.faction.parentFactionName ?? null,
                     visibility: formDialog.faction.visibility,
                   }
                 : undefined
