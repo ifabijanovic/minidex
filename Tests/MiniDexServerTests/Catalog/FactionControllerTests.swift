@@ -150,6 +150,64 @@ struct FactionControllerTests {
         }
     }
 
+    @Test("patching faction supports clearing relations")
+    func updateGameSystemAndParentToNil() async throws {
+        try await AuthenticatedTestContext.run(
+            migrations: MiniDexDB.migrations,
+            roles: .cataloguer
+        ) { context in
+            let app = context.app
+            try app.register(collection: FactionController())
+
+            let gameSystem = DBGameSystem(name: "Warhammer 40k", createdByID: context.userID, visibility: .`public`)
+            try await gameSystem.save(on: app.db)
+
+            let parentFaction = DBFaction(
+                name: "Space Marines",
+                gameSystemID: try gameSystem.requireID(),
+                createdByID: context.userID,
+                visibility: .`public`
+            )
+            try await parentFaction.save(on: app.db)
+
+            let faction = DBFaction(
+                name: "Cobalt Knights",
+                gameSystemID: try gameSystem.requireID(),
+                parentFactionID: try parentFaction.requireID(),
+                createdByID: context.userID,
+                visibility: .`public`
+            )
+            try await faction.save(on: app.db)
+
+            try await app.testing().test(.PATCH, "/v1/factions/\(try faction.requireID())", beforeRequest: { req in
+                req.headers.bearerAuthorization = .init(token: context.token)
+                try req.content.encode(
+                    PatchDTO(gameSystemID: clearSentinelID, parentFactionID: clearSentinelID)
+                )
+            }, afterResponse: { res async throws in
+                #expect(res.status == .ok)
+                let dto = try res.content.decode(DTO.self)
+                #expect(dto.gameSystemID == nil)
+                #expect(dto.parentFactionID == nil)
+            })
+
+            try await app.testing().test(.PATCH, "/v1/factions/\(try faction.requireID())", beforeRequest: { req in
+                req.headers.bearerAuthorization = .init(token: context.token)
+                try req.content.encode(
+                    PatchDTO(gameSystemID: gameSystem.id, parentFactionID: parentFaction.id)
+                )
+            }, afterResponse: { res async throws in
+                #expect(res.status == .ok)
+                let dto = try res.content.decode(DTO.self)
+                #expect(dto.gameSystemID == gameSystem.id)
+                #expect(dto.parentFactionID == parentFaction.id)
+            })
+
+            try await faction.delete(on: app.db)
+            try await parentFaction.delete(on: app.db)
+        }
+    }
+
     @Test("update parent to self fails")
     func updateParentToSelf() async throws {
         try await AuthenticatedTestContext.run(
@@ -161,7 +219,6 @@ struct FactionControllerTests {
 
             let faction = DBFaction(
                 name: "Space Marines",
-                gameSystemID: nil,
                 createdByID: context.userID,
                 visibility: .`public`
             )
@@ -188,7 +245,6 @@ struct FactionControllerTests {
 
             let parentFaction = DBFaction(
                 name: "Grand Alliance Order",
-                gameSystemID: nil,
                 createdByID: context.userID,
                 visibility: .`public`
             )
@@ -196,7 +252,6 @@ struct FactionControllerTests {
 
             let faction = DBFaction(
                 name: "Stormcast Eternals",
-                gameSystemID: nil,
                 parentFactionID: try parentFaction.requireID(),
                 createdByID: context.userID,
                 visibility: .`public`

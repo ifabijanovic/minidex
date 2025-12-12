@@ -32,6 +32,8 @@ public struct PagedResponse<T: Content>: Content {
     public var query: String?
 }
 
+public let clearSentinelID = UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
+
 public protocol RestCrudController: RouteCollection, Sendable {
     associatedtype DBModel: Model where DBModel.IDValue == UUID
     associatedtype DTO: Content
@@ -185,5 +187,10 @@ extension RestCrudController {
             }
             return .noContent
         }
+    }
+
+    public func patchRelation(value: UUID?, model: DBModel, path: ReferenceWritableKeyPath<DBModel, UUID?>) {
+        guard let value else { return }
+        model[keyPath: path] = value == clearSentinelID ? nil : value
     }
 }

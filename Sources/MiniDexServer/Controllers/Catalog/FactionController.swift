@@ -136,8 +136,8 @@ struct FactionController: RestCrudController {
                         throw Abort(.conflict, reason: "Faction cannot be its own parent")
                     }
                     if let value = patch.name { dbModel.name = value }
-                    if let value = patch.gameSystemID { dbModel.$gameSystem.id = value }
-                    if let value = patch.parentFactionID { dbModel.$parentFaction.id = value }
+                    patchRelation(value: patch.gameSystemID, model: dbModel, path: \.$gameSystem.id)
+                    patchRelation(value: patch.parentFactionID, model: dbModel, path: \.$parentFaction.id)
                     if let value = patch.visibility { dbModel.visibility = value }
                 }
             )
