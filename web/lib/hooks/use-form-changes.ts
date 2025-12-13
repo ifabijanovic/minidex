@@ -4,6 +4,7 @@ import { isEqual } from "lodash";
 import { useEffect, useState } from "react";
 
 type FormValues = Record<string, unknown>;
+type FormErrors<T extends FormValues> = Partial<Record<keyof T, string | null>>;
 
 type LookupOption = { id: string; name: string };
 
@@ -17,6 +18,11 @@ type FormChangeResult<T extends FormValues> = {
   hasChanges: boolean;
   getCreatePayload: () => T;
   getUpdatePayload: () => Partial<T>;
+  errors: FormErrors<T>;
+  setError: <K extends keyof T>(field: K, error: string | null) => void;
+  setErrors: (errors: FormErrors<T>) => void;
+  clearErrors: () => void;
+  hasErrors: boolean;
 };
 
 export function useFormChanges<T extends FormValues>({
@@ -24,6 +30,7 @@ export function useFormChanges<T extends FormValues>({
 }: FormChangeOptions<T>): FormChangeResult<T> {
   const [values, setValues] = useState<T>(initialValues);
   const [changedFields, setChangedFields] = useState<Set<keyof T>>(new Set());
+  const [errors, setErrors] = useState<FormErrors<T>>({});
 
   // Track changes when values change
   useEffect(() => {
@@ -55,12 +62,25 @@ export function useFormChanges<T extends FormValues>({
 
   const hasChanges = changedFields.size > 0;
 
+  const setError = <K extends keyof T>(field: K, error: string | null) => {
+    setErrors((prev) => ({ ...prev, [field]: error }));
+  };
+
+  const clearErrors = () => setErrors({});
+
+  const hasErrors = Object.values(errors).some((error) => error !== null);
+
   return {
     values,
     setValue,
     hasChanges,
     getCreatePayload,
     getUpdatePayload,
+    errors,
+    setError,
+    setErrors,
+    clearErrors,
+    hasErrors,
   };
 }
 

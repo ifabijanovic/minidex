@@ -9,7 +9,7 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import { FormEvent, useCallback, useMemo, useState } from "react";
+import { FormEvent, useCallback, useMemo } from "react";
 
 import { CatalogItemVisibilityField } from "@/app/(auth)/catalog/components/CatalogItemVisibilityField";
 import { type Faction } from "@/app/(auth)/catalog/factions/hooks/use-factions";
@@ -73,10 +73,17 @@ export function FactionFormDialog({
     [mode, initialValues],
   );
 
-  const { values, setValue, hasChanges, getCreatePayload, getUpdatePayload } =
-    useFormChanges<FactionFormValues>({
-      initialValues: initialFormValues,
-    });
+  const {
+    values,
+    setValue,
+    hasChanges,
+    getCreatePayload,
+    getUpdatePayload,
+    errors,
+    setError,
+  } = useFormChanges<FactionFormValues>({
+    initialValues: initialFormValues,
+  });
 
   const gameSystemField = useLookupField({
     initialId: initialValues?.gameSystemID,
@@ -89,8 +96,6 @@ export function FactionFormDialog({
     initialName: initialValues?.parentFactionName,
     onIdChange: (id) => setValue("parentFactionID", id),
   });
-
-  const [nameError, setNameError] = useState<string | null>(null);
   const dialogTitle = mode === "create" ? m.createTitle : m.editTitle;
 
   const excludeIds = useMemo(
@@ -106,10 +111,10 @@ export function FactionFormDialog({
     let hasError = false;
 
     if (!trimmedName) {
-      setNameError(m.nameRequired);
+      setError("name", m.nameRequired);
       hasError = true;
     } else {
-      setNameError(null);
+      setError("name", null);
     }
 
     if (hasError) return;
@@ -138,8 +143,8 @@ export function FactionFormDialog({
             onChange={(event) => setValue("name", event.target.value)}
             fullWidth
             disabled={isFormDisabled}
-            error={Boolean(nameError)}
-            helperText={nameError}
+            error={Boolean(errors.name)}
+            helperText={errors.name}
             InputLabelProps={{ shrink: true, required: true }}
           />
 
