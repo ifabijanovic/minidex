@@ -3,7 +3,9 @@
 import { isEqual } from "lodash";
 import { useEffect, useState } from "react";
 
-type FormValues = Record<string, any>;
+type FormValues = Record<string, unknown>;
+
+type LookupOption = { id: string; name: string };
 
 type FormChangeOptions<T extends FormValues> = {
   initialValues: T;
@@ -11,15 +13,10 @@ type FormChangeOptions<T extends FormValues> = {
 
 type FormChangeResult<T extends FormValues> = {
   values: T;
-  setValues: (values: T | ((prev: T) => T)) => void;
   setValue: <K extends keyof T>(key: K, value: T[K]) => void;
-  changedFields: Set<keyof T>;
   hasChanges: boolean;
-  isDirty: (field: keyof T) => boolean;
   getCreatePayload: () => T;
   getUpdatePayload: () => Partial<T>;
-  reset: () => void;
-  resetTo: (values: T) => void;
 };
 
 export function useFormChanges<T extends FormValues>({
@@ -56,21 +53,38 @@ export function useFormChanges<T extends FormValues>({
     return payload;
   };
 
-  const reset = () => setValues(initialValues);
-  const resetTo = (newValues: T) => setValues(newValues);
   const hasChanges = changedFields.size > 0;
-  const isDirty = (field: keyof T) => changedFields.has(field);
 
   return {
     values,
-    setValues,
     setValue,
-    changedFields,
     hasChanges,
-    isDirty,
     getCreatePayload,
     getUpdatePayload,
-    reset,
-    resetTo,
+  };
+}
+
+// Hook for managing lookup dropdown state with display values
+export function useLookupField({
+  initialId,
+  initialName,
+  onIdChange,
+}: {
+  initialId?: string | null;
+  initialName?: string | null;
+  onIdChange: (id: string | null) => void;
+}) {
+  const [selectedOption, setSelectedOption] = useState<LookupOption | null>(
+    initialId && initialName ? { id: initialId, name: initialName } : null,
+  );
+
+  const handleChange = (option: LookupOption | null) => {
+    setSelectedOption(option);
+    onIdChange(option?.id || null);
+  };
+
+  return {
+    value: selectedOption,
+    onChange: handleChange,
   };
 }

@@ -15,13 +15,10 @@ import { CatalogItemVisibilityField } from "@/app/(auth)/catalog/components/Cata
 import { type Faction } from "@/app/(auth)/catalog/factions/hooks/use-factions";
 import { factionFormMessages as m } from "@/app/(auth)/catalog/factions/messages";
 import { type CatalogItemVisibility } from "@/app/(auth)/catalog/game-systems/hooks/use-game-systems";
-import {
-  LookupDropdown,
-  type LookupOption,
-} from "@/app/(auth)/components/LookupDropdown";
+import { LookupDropdown } from "@/app/(auth)/components/LookupDropdown";
 import { type UserRole } from "@/app/contexts/user-context";
 import { api } from "@/lib/api-client";
-import { useFormChanges } from "@/lib/hooks/use-form-changes";
+import { useFormChanges, useLookupField } from "@/lib/hooks/use-form-changes";
 
 export type FactionFormValues = {
   name: string;
@@ -81,33 +78,17 @@ export function FactionFormDialog({
       initialValues: initialFormValues,
     });
 
-  // Display state for LookupDropdowns - full LookupOption objects
-  const [displayGameSystem, setDisplayGameSystem] =
-    useState<LookupOption | null>(
-      initialValues?.gameSystemID && initialValues?.gameSystemName
-        ? { id: initialValues.gameSystemID, name: initialValues.gameSystemName }
-        : null,
-    );
-  const [displayParentFaction, setDisplayParentFaction] =
-    useState<LookupOption | null>(
-      initialValues?.parentFactionID && initialValues?.parentFactionName
-        ? {
-            id: initialValues.parentFactionID,
-            name: initialValues.parentFactionName,
-          }
-        : null,
-    );
+  const gameSystemField = useLookupField({
+    initialId: initialValues?.gameSystemID,
+    initialName: initialValues?.gameSystemName,
+    onIdChange: (id) => setValue("gameSystemID", id),
+  });
 
-  // Sync display changes to form values
-  const handleGameSystemChange = (option: LookupOption | null) => {
-    setDisplayGameSystem(option);
-    setValue("gameSystemID", option?.id || null);
-  };
-
-  const handleParentFactionChange = (option: LookupOption | null) => {
-    setDisplayParentFaction(option);
-    setValue("parentFactionID", option?.id || null);
-  };
+  const parentFactionField = useLookupField({
+    initialId: initialValues?.parentFactionID,
+    initialName: initialValues?.parentFactionName,
+    onIdChange: (id) => setValue("parentFactionID", id),
+  });
 
   const [nameError, setNameError] = useState<string | null>(null);
   const dialogTitle = mode === "create" ? m.createTitle : m.editTitle;
@@ -165,8 +146,8 @@ export function FactionFormDialog({
           <LookupDropdown
             label={m.gameSystemLabel}
             placeholder={m.gameSystemPlaceholder}
-            value={displayGameSystem}
-            onChange={handleGameSystemChange}
+            value={gameSystemField.value}
+            onChange={gameSystemField.onChange}
             fetcher={useCallback(async (q: string) => {
               const res = await api.get<{
                 data: { id: string; name: string }[];
@@ -180,8 +161,8 @@ export function FactionFormDialog({
           <LookupDropdown
             label={m.parentFactionLabel}
             placeholder={m.parentFactionPlaceholder}
-            value={displayParentFaction}
-            onChange={handleParentFactionChange}
+            value={parentFactionField.value}
+            onChange={parentFactionField.onChange}
             excludeIds={excludeIds}
             fetcher={useCallback(async (q: string) => {
               const res = await api.get<{ data: Faction[] }>("/v1/factions", {
