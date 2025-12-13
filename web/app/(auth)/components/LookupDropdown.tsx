@@ -41,34 +41,27 @@ export function LookupDropdown({
     staleTime: 5 * 60 * 1000,
   });
 
-  const filteredOptions = useMemo(
-    () =>
-      rawOptions.filter(
-        (item) =>
-          !excludeIds?.includes(item.id) && (!value || item.id !== value.id),
-      ),
-    [rawOptions, excludeIds, value],
-  );
-
-  const mergedOptions = useMemo(() => {
+  const options = useMemo(() => {
+    const filtered = rawOptions.filter(
+      (item) => !excludeIds?.includes(item.id),
+    );
     if (
       value &&
       !excludeIds?.includes(value.id) &&
-      !filteredOptions.some((o) => o.id === value.id)
+      !filtered.some((o) => o.id === value.id)
     ) {
-      return [{ id: value.id, name: value.name }, ...filteredOptions];
+      return [{ id: value.id, name: value.name }, ...filtered];
+    } else {
+      return filtered;
     }
-    return filteredOptions;
-  }, [excludeIds, filteredOptions, value]);
+  }, [rawOptions, excludeIds, value]);
 
   return (
     <Autocomplete
-      options={mergedOptions}
+      options={options}
       getOptionLabel={(option) => option.name}
       loading={isLoading}
-      value={
-        value ? (mergedOptions.find((o) => o.id === value.id) ?? value) : null
-      }
+      value={value}
       onChange={(_, option) => {
         onChange(option ?? null);
         setSearch(option?.name ?? "");
