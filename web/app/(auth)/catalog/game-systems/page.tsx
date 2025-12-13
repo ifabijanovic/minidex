@@ -26,7 +26,10 @@ import { enqueueSnackbar } from "notistack";
 import { useMemo, useState } from "react";
 
 import { CatalogItemRowActions } from "@/app/(auth)/catalog/components/CatalogItemRowActions";
-import { GameSystemFormDialog } from "@/app/(auth)/catalog/game-systems/components/GameSystemFormDialog";
+import {
+  GameSystemFormDialog,
+  type GameSystemFormValues,
+} from "@/app/(auth)/catalog/game-systems/components/GameSystemFormDialog";
 import {
   type CatalogItemVisibility,
   type GameSystem,
@@ -83,12 +86,7 @@ export default function GameSystemsPage() {
     GameSystem,
     {
       id?: string;
-      name: string;
-      publisher: string | null;
-      releaseYear: number | null;
-      website: string | null;
-      visibility: CatalogItemVisibility;
-    }
+    } & (GameSystemFormValues | Partial<GameSystemFormValues>)
   >({
     method: (variables) => (variables.id ? "patch" : "post"),
     path: (variables) =>
@@ -162,13 +160,9 @@ export default function GameSystemsPage() {
     setFormDialog(null);
   };
 
-  const handleFormSave = (values: {
-    name: string;
-    publisher: string | null;
-    releaseYear: number | null;
-    website: string | null;
-    visibility: CatalogItemVisibility;
-  }) => {
+  const handleFormSave = (
+    values: GameSystemFormValues | Partial<GameSystemFormValues>,
+  ) => {
     saveMutation.mutate({
       ...(formDialog?.mode === "edit" && formDialog.gameSystem
         ? { id: formDialog.gameSystem.id }
