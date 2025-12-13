@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
+import { RELATION_FIELDS_BY_ENDPOINT } from "@/app/api/relation-fields";
 import { getApiUrl } from "@/lib/env";
 
 export async function GET(
@@ -51,6 +52,27 @@ export async function DELETE(
   return proxyRequest(request, path, "DELETE");
 }
 
+function transformPatchPayload(body: string, path: string): string {
+  const pathParts = path.split("/").filter(Boolean);
+  const endpoint = pathParts.length >= 2 ? pathParts[1] : null;
+
+  if (!endpoint || !RELATION_FIELDS_BY_ENDPOINT[endpoint]) {
+    return body;
+  }
+
+  const payload = JSON.parse(body);
+  const relationFields = RELATION_FIELDS_BY_ENDPOINT[endpoint];
+
+  // Convert null relation fields to sentinel UUID
+  relationFields.forEach((field: string) => {
+    if (payload[field] === null) {
+      payload[field] = "00000000-0000-0000-0000-000000000000";
+    }
+  });
+
+  return JSON.stringify(payload);
+}
+
 async function proxyRequest(
   request: NextRequest,
   pathSegments: string[],
@@ -85,6 +107,9 @@ async function proxyRequest(
     if (method !== "GET" && method !== "DELETE") {
       try {
         body = await request.text();
+        if (method === "PATCH" && body) {
+          body = transformPatchPayload(body, relativePath);
+        }
       } catch {
         // No body to forward
       }

@@ -3,6 +3,7 @@ export const layoutMessages = {
   home: "Home",
   catalog: "Catalog",
   gameSystems: "Game systems",
+  factions: "Factions",
   admin: "Admin",
   users: "Users",
   profile: "Profile",

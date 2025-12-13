@@ -23,4 +23,5 @@ func routes(_ app: Application, cacheChecksumSecret: String) throws {
 
     try app.register(collection: MeController())
     try app.register(collection: GameSystemController())
+    try app.register(collection: FactionController())
 }

@@ -112,6 +112,7 @@ export async function apiRequest<TResponse, TBody = unknown>(
     }
     const message =
       (payload as { message?: string })?.message ||
+      (payload as { reason?: string })?.reason ||
       `Request failed with status ${response.status}`;
     const error = new ApiError(message, response.status, payload);
     throw error;

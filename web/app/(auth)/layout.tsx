@@ -1,5 +1,6 @@
 "use client";
 
+import FlagOutlined from "@mui/icons-material/FlagOutlined";
 import HomeOutlined from "@mui/icons-material/HomeOutlined";
 import Inventory2Outlined from "@mui/icons-material/Inventory2Outlined";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -79,6 +80,11 @@ function SidebarContent({ isAdmin }: { isAdmin: boolean }) {
             href="/catalog/game-systems"
             icon={ShieldOutlined}
           />
+          <NavItemChild
+            label={m.factions}
+            href="/catalog/factions"
+            icon={FlagOutlined}
+          />
         </ExpandableNavItem>
         {isAdmin && (
           <ExpandableNavItem
@@ -123,13 +129,12 @@ export default function AuthenticatedLayout({
   const displayName = profile?.displayName ?? m.user;
   const isAdmin = user?.roles.includes("admin") ?? false;
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (isMobile) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMobileOpen(false);
     }
   }, [pathname, isMobile]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   function handleAvatarClick(event: React.MouseEvent<HTMLElement>) {
     setMenuAnchor(event.currentTarget);

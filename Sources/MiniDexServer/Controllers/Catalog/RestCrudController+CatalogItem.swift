@@ -15,10 +15,19 @@ extension RestCrudController {
         req: Request,
         userPath: KeyPath<DBModel, ParentProperty<DBModel, DBUser>>,
         visibilityPath: KeyPath<DBModel, CatalogItemVisibility>,
+        query: (@Sendable (UUID) throws -> QueryBuilder<DBModel>)? = nil,
     ) async throws -> DBModel?
     {
         let user = try req.auth.require(AuthUser.self)
-        guard let result = try await DBModel.find(req.parameters.require("id"), on: req.db) else { return nil }
+        let id: UUID = try req.parameters.require("id")
+        let result: DBModel?
+        if let query {
+            result = try await query(id).first()
+        } else {
+            result = try await DBModel.find(id, on: req.db)
+        }
+        guard let result else { return nil }
+
         if user.roles.contains(.admin) {
             return result
         } else {

@@ -11,11 +11,10 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const theme = useMemo(() => {
     if (mounted) {
